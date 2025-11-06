@@ -1,195 +1,103 @@
-from django import forms
-from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
-from django.core.validators import RegexValidator
-from django.utils import timezone
-from .models import Reserva, Vuelo, Asiento, Usuario
+# gestion/forms.py
 
-# ---------------------------
-# FORMULARIO DE RESERVA DE ASIENTOS
-# ---------------------------
+from django import forms
+from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
+from django.contrib.auth import get_user_model
+
+from .models import Vuelo, Reserva, Asiento, Avion
+# Importa todos los modelos necesarios para los formularios
+Usuario = get_user_model() 
+
+# ==========================================================
+# 1. FORMULARIOS DE AUTENTICACIÓN
+# ==========================================================
+
+# Necesario para views.login_view
+class LoginForm(AuthenticationForm):
+    """Formulario base para la autenticación de usuarios."""
+    # Django ya maneja los campos 'username' y 'password'. 
+    # Puedes añadir estilos o personalizar mensajes si lo deseas.
+    username = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nombre de usuario'}))
+    password = forms.CharField(widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Contraseña'}))
+
+# Necesario para views.registro_view
+class RegistroForm(UserCreationForm):
+    """
+    Formulario para la creación de nuevos usuarios (Pasajeros).
+    Asume que el campo 'rol' se establecerá a PASAJERO por defecto en el modelo o en la vista.
+    """
+    email = forms.EmailField(required=True, widget=forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'Correo Electrónico'}))
+    first_name = forms.CharField(required=True, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nombre'}))
+    last_name = forms.CharField(required=True, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Apellido'}))
+
+    class Meta(UserCreationForm.Meta):
+        model = Usuario
+        # Excluimos el campo 'rol' si todos los registros son Pasajeros. 
+        # Si no, el usuario tendría que seleccionar su rol.
+        fields = ('username', 'email', 'first_name', 'last_name',)
+        # Asegúrate de que 'username' y 'password' se manejen correctamente por UserCreationForm
+
+# ==========================================================
+# 2. FORMULARIOS DE GESTIÓN (ADMIN)
+# ==========================================================
+
+# Necesario para VueloCreateView y VueloUpdateView
+class VueloAdminForm(forms.ModelForm):
+    """
+    Formulario completo para que el Administrador cree y edite vuelos.
+    """
+    # Usamos un queryset específico para mostrar solo usuarios que pueden ser tripulación (si aplica)
+    tripulacion = forms.ModelMultipleChoiceField(
+        queryset=Usuario.objects.filter(rol=Usuario.Rol.ADMIN), # Ejemplo: solo Admins como tripulación
+        required=False,
+        widget=forms.SelectMultiple(attrs={'class': 'form-control'})
+    )
+
+    class Meta:
+        model = Vuelo
+        fields = [
+            'codigo_vuelo', 'origen', 'destino', 'fecha_salida', 
+            'fecha_llegada', 'precio_base', 'avion', 'estado', 'tripulacion'
+        ]
+        widgets = {
+            # Widgets para un mejor manejo de fecha y hora
+            'fecha_salida': forms.DateTimeInput(attrs={'type': 'datetime-local', 'class': 'form-control'}),
+            'fecha_llegada': forms.DateTimeInput(attrs={'type': 'datetime-local', 'class': 'form-control'}),
+            'codigo_vuelo': forms.TextInput(attrs={'class': 'form-control'}),
+            'origen': forms.TextInput(attrs={'class': 'form-control'}),
+            'destino': forms.TextInput(attrs={'class': 'form-control'}),
+            'precio_base': forms.NumberInput(attrs={'class': 'form-control'}),
+            'avion': forms.Select(attrs={'class': 'form-control'}),
+            'estado': forms.Select(attrs={'class': 'form-control'}),
+        }
+
+# ==========================================================
+# 3. FORMULARIOS DE RESERVA (PASAJERO)
+# ==========================================================
+
+# Necesario para views.crear_reserva_view
 class ReservaForm(forms.ModelForm):
-    vuelo = forms.ModelChoiceField(
-        queryset=Vuelo.objects.filter(fecha_salida__gte=timezone.now()),
-        empty_label="Seleccione un vuelo",
-        widget=forms.Select(attrs={
-            'class': 'form-control',
-            'required': True,
-            'onchange': 'this.form.submit();'  # Para recargar asientos al cambiar vuelo
-        })
-    )
-    asiento = forms.ModelChoiceField(
-        queryset=Asiento.objects.none(),
-        empty_label="Seleccione un asiento",
-        widget=forms.Select(attrs={'class': 'form-control', 'required': True})
-    )
-    equipaje_bodega = forms.IntegerField(
-        required=False,
-        min_value=0,
-        initial=0,
-        widget=forms.NumberInput(attrs={'class': 'form-control'})
-    )
-    equipaje_mano = forms.BooleanField(required=False, initial=True)
-    requerimientos_especiales = forms.CharField(
-        required=False,
-        widget=forms.Textarea(attrs={'rows': 3, 'class': 'form-control'})
+    """
+    Formulario para la reserva inicial, preguntando la cantidad de asientos.
+    """
+    # Campo extra que no está en el modelo, solo se usa para el formulario
+    cantidad_pasajeros = forms.IntegerField(
+        min_value=1, 
+        max_value=9, 
+        initial=1,
+        label='Número de Pasajeros (Máx. 9)',
+        widget=forms.NumberInput(attrs={'class': 'form-control', 'min': 1, 'max': 9})
     )
 
     class Meta:
         model = Reserva
-        fields = ['vuelo', 'asiento', 'equipaje_mano', 'equipaje_bodega', 'requerimientos_especiales']
-
-    def __init__(self, *args, usuario=None, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.usuario = usuario
-
-        # Obtener el vuelo desde POST, initial o reserva existente
-        vuelo_id = (
-            self.data.get('vuelo') or
-            (self.initial.get('vuelo') if self.initial.get('vuelo') else None) or
-            (self.instance.vuelo.pk if self.instance.pk and self.instance.vuelo else None)
-        )
-
-        if vuelo_id:
-            try:
-                vuelo = Vuelo.objects.get(pk=int(vuelo_id))
-                # Solo los asientos disponibles del avión del vuelo
-                queryset_asientos = Asiento.objects.filter(
-                    avion=vuelo.avion,
-                    estado=Asiento.Estado.DISPONIBLE
-                )
-                # Si editamos una reserva existente, agregamos su asiento
-                if self.instance.pk and self.instance.asiento:
-                    queryset_asientos |= Asiento.objects.filter(pk=self.instance.asiento.pk)
-                self.fields['asiento'].queryset = queryset_asientos
-            except (ValueError, TypeError, Vuelo.DoesNotExist):
-                self.fields['asiento'].queryset = Asiento.objects.none()
-        else:
-            self.fields['asiento'].queryset = Asiento.objects.none()
-
-    def clean(self):
-        cleaned_data = super().clean()
-        vuelo = cleaned_data.get('vuelo')
-        asiento = cleaned_data.get('asiento')
-
-        if vuelo and asiento:
-            if asiento.avion != vuelo.avion:
-                raise forms.ValidationError("⚠️ Este asiento no pertenece al avión del vuelo seleccionado.")
-            if asiento.estado != Asiento.Estado.DISPONIBLE:
-                raise forms.ValidationError("⚠️ Este asiento no está disponible.")
-            if Reserva.objects.filter(
-                vuelo=vuelo,
-                pasajero=self.usuario
-            ).exclude(pk=self.instance.pk if self.instance else None).exists():
-                raise forms.ValidationError("⚠️ Ya tienes una reserva para este vuelo.")
-
-        return cleaned_data
-
-    def save(self, commit=True):
-        reserva = super().save(commit=False)
-        reserva.pasajero = self.usuario
-        reserva.precio_final = reserva.vuelo.precio_base + (reserva.asiento.precio_extra if reserva.asiento else 0)
-        reserva.estado = Reserva.Estado.PENDIENTE
-
-        if commit:
-            reserva.save()
-            # Marcar asiento como reservado
-            if reserva.asiento:
-                reserva.asiento.estado = Asiento.Estado.RESERVADO
-                reserva.asiento.save()
-        return reserva
-
-# ---------------------------
-# REGISTRO DE USUARIO
-# ---------------------------
-class RegistroForm(UserCreationForm):
-    email = forms.EmailField(required=True)
-    first_name = forms.CharField(required=True, label='Nombre')
-    last_name = forms.CharField(required=True, label='Apellido')
-    documento = forms.CharField(required=True, validators=[RegexValidator(r'^[0-9]+$', 'Solo números')])
-    telefono = forms.CharField(required=True, validators=[RegexValidator(r'^\+?[0-9]+$', 'Formato inválido')])
-    fecha_nacimiento = forms.DateField(required=True, widget=forms.DateInput(attrs={'type': 'date'}))
-
-    class Meta:
-        model = Usuario
-        fields = ['username', 'email', 'first_name', 'last_name', 'documento', 'telefono', 'fecha_nacimiento', 'password1', 'password2']
-
-    def save(self, commit=True):
-        user = super().save(commit=False)
-        user.rol = Usuario.Rol.PASAJERO
-        user.is_staff = False
-        user.is_superuser = False
-        if commit:
-            user.save()
-        return user
-
-    def clean_email(self):
-        email = self.cleaned_data.get('email')
-        if Usuario.objects.filter(email=email).exists():
-            raise forms.ValidationError('⚠️ Este email ya está registrado.')
-        return email
-
-    def clean_fecha_nacimiento(self):
-        fecha = self.cleaned_data.get('fecha_nacimiento')
-        if fecha and fecha > timezone.now().date():
-            raise forms.ValidationError('⚠️ La fecha de nacimiento no puede ser futura.')
-        return fecha
-
-# ---------------------------
-# LOGIN
-# ---------------------------
-class LoginForm(AuthenticationForm):
-    username = forms.CharField(label="Usuario o email", widget=forms.TextInput(attrs={'autofocus': True}))
-    password = forms.CharField(label="Contraseña", strip=False, widget=forms.PasswordInput(attrs={'autocomplete': 'current-password'}))
-
-# ---------------------------
-# BÚSQUEDA DE VUELOS
-# ---------------------------
-class VueloSearchForm(forms.Form):
-    origen = forms.CharField(required=False, label='Origen', widget=forms.TextInput(attrs={'placeholder': 'Ciudad origen'}))
-    destino = forms.CharField(required=False, label='Destino', widget=forms.TextInput(attrs={'placeholder': 'Ciudad destino'}))
-    fecha = forms.DateField(required=False, label='Fecha', widget=forms.DateInput(attrs={'type': 'date'}))
-
-    def clean_fecha(self):
-        fecha = self.cleaned_data.get('fecha')
-        if fecha and fecha < timezone.now().date():
-            raise forms.ValidationError('⚠️ No puedes buscar vuelos en fechas pasadas.')
-        return fecha
-
-# ---------------------------
-# SELECCIÓN DE ASIENTO
-# ---------------------------
-class AsientoSelectForm(forms.Form):
-    asiento_id = forms.IntegerField(widget=forms.HiddenInput())
-
-    def __init__(self, *args, vuelo=None, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.vuelo = vuelo
-
-    def clean_asiento_id(self):
-        asiento_id = self.cleaned_data.get('asiento_id')
-        try:
-            asiento = Asiento.objects.get(pk=asiento_id)
-            if self.vuelo and asiento.avion != self.vuelo.avion:
-                raise forms.ValidationError('⚠️ Este asiento no pertenece al avión del vuelo seleccionado.')
-            if asiento.estado != Asiento.Estado.DISPONIBLE:
-                raise forms.ValidationError('⚠️ Este asiento no está disponible.')
-            return asiento
-        except Asiento.DoesNotExist:
-            raise forms.ValidationError('⚠️ Asiento no válido.')
-
-# ---------------------------
-# FORMULARIO DE VUELOS (ADMIN)
-# ---------------------------
-class VueloForm(forms.ModelForm):
-    class Meta:
-        model = Vuelo
-        fields = [
-            'avion', 'codigo_vuelo', 'origen', 'destino', 'fecha_salida',
-            'fecha_llegada', 'duracion', 'precio_base', 'tripulacion'
-        ]
-
-    def __init__(self, *args, **kwargs):
-        user = kwargs.pop('user', None)
-        super().__init__(*args, **kwargs)
-        if user and user.rol == 'AD':  # Si es administrador
-            self.fields['estado'] = forms.ChoiceField(choices=Vuelo.Estado.choices)
+        # Solo necesitamos este campo para el formulario inicial.
+        # Los campos 'vuelo', 'pasajero', 'asiento', 'estado' se manejan en la vista.
+        fields = [] 
+        
+    def clean_cantidad_pasajeros(self):
+        """Validación simple para la cantidad de pasajeros."""
+        cantidad = self.cleaned_data.get('cantidad_pasajeros')
+        if cantidad > 9:
+            raise forms.ValidationError("No puedes reservar para más de 9 personas a la vez.")
+        return cantidad

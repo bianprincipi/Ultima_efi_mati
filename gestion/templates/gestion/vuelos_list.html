@@ -1,0 +1,126 @@
+{% extends "gestion/base.html" %}
+
+{% block title %}Vuelos Disponibles - Aurora Airlines{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Estilos para las tarjetas de vuelo */
+    .vuelo-card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        border: none;
+        border-radius: 12px;
+        background-color: #ffffff;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    }
+    .vuelo-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    }
+    .vuelo-header {
+        background-color: var(--aurora-dark);
+        color: white;
+        border-top-left-radius: 12px;
+        border-top-right-radius: 12px;
+        padding: 15px 20px;
+    }
+    .vuelo-time {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: var(--aurora-secondary);
+    }
+    .vuelo-route i {
+        color: var(--aurora-primary);
+        font-size: 1.2rem;
+    }
+    .vuelo-details {
+        padding: 15px 20px;
+    }
+    .vuelo-footer {
+        border-top: 1px solid #eee;
+        padding: 10px 20px 15px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid">
+    <h1 class="text-center mb-5 fw-bold" style="color: var(--aurora-dark);">✈️ Vuelos Disponibles para Reserva</h1>
+
+    {# Mensaje si no hay vuelos #}
+    {% if not vuelos %}
+        <div class="alert alert-info text-center mt-5" role="alert">
+            <h4 class="alert-heading">¡Ups!</h4>
+            <p>Parece que no hay vuelos programados disponibles en este momento. Vuelve pronto.</p>
+        </div>
+    {% else %}
+        
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+            
+            {# Iteración sobre la lista de vuelos #}
+            {% for vuelo in vuelos %}
+            
+                <div class="col">
+                    <div class="card vuelo-card h-100">
+                        
+                        {# Cabecera de Vuelo (Ruta y Código) #}
+                        <div class="vuelo-header d-flex justify-content-between align-items-center">
+                            <div class="vuelo-route">
+                                <span class="d-block text-white-50">Ruta</span>
+                                <span class="fw-bold fs-5">{{ vuelo.origen }} <i class="bi bi-arrow-right-short mx-1"></i> {{ vuelo.destino }}</span>
+                            </div>
+                            <div class="text-end">
+                                <span class="d-block fs-6 fw-light text-white-50">Cód. Vuelo</span>
+                                <span class="fw-bold fs-4" style="color: var(--aurora-secondary);">{{ vuelo.codigo_vuelo }}</span>
+                            </div>
+                        </div>
+
+                        {# Cuerpo de Vuelo (Detalles) #}
+                        <div class="vuelo-details">
+                            <div class="row mb-3">
+                                <div class="col-6">
+                                    <small class="text-muted d-block">Fecha de Salida</small>
+                                    <span class="fw-semibold">{{ vuelo.fecha_salida|date:"d M Y" }}</span>
+                                </div>
+                                <div class="col-6">
+                                    <small class="text-muted d-block">Hora de Salida</small>
+                                    <span class="vuelo-time">{{ vuelo.fecha_salida|time:"H:i" }}</span>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-6">
+                                    <small class="text-muted d-block">Avión</small>
+                                    <span class="fw-semibold">{{ vuelo.avion.modelo }}</span>
+                                </div>
+                                <div class="col-6">
+                                    <small class="text-muted d-block">Plazas Disponibles</small>
+                                    <span class="fw-bold text-success">{{ vuelo.plazas_disponibles|default:"N/A" }}</span> 
+                                </div>
+                            </div>
+                        </div>
+
+                        {# Pie de Vuelo (Acción) #}
+                        <div class="vuelo-footer mt-auto">
+                            {# Enlace al detalle del vuelo para reservar. ¡Debe usar el namespace 'gestion:detalle_vuelo'! #}
+                            {% if vuelo.plazas_disponibles > 0 %}
+                                {# Importante: Aquí se usa 'gestion:' #}
+                                <a href="{% url 'gestion:detalle_vuelo' pk=vuelo.pk %}" class="btn btn-aurora-primary w-100 fw-bold">
+                                    Reservar Vuelo <i class="bi bi-chevron-right"></i>
+                                </a>
+                            {% else %}
+                                <button class="btn btn-secondary w-100" disabled>Vuelo Completo</button>
+                            {% endif %}
+                        </div>
+
+                    </div>
+                </div>
+            
+            {% endfor %}
+
+        </div>
+    {% endif %}
+
+</div>
+
+{% endblock content %}

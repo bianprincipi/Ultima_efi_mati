@@ -1,0 +1,51 @@
+{% extends 'gestion/base.html' %}
+
+{% block title %}Mi Reserva #{{ reserva.pk }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <h2 class="display-4 fw-bold text-success mb-4">
+                <i class="bi bi-check-circle-fill me-3"></i> Reserva Confirmada
+            </h2>
+            
+            <div class="card shadow-lg border-0 rounded-4 p-5 bg-light-green">
+                <h3 class="card-title fw-bold text-primary mb-3">Tu Boleto está Listo</h3>
+                <hr>
+
+                <dl class="row fs-5">
+                    <dt class="col-sm-5 text-muted">Número de Reserva:</dt>
+                    <dd class="col-sm-7 fw-bold">{{ reserva.pk }}</dd>
+
+                    <dt class="col-sm-5 text-muted">Código de Vuelo:</dt>
+                    <dd class="col-sm-7 fw-bold">{{ vuelo.codigo_vuelo }}</dd>
+
+                    <dt class="col-sm-5 text-muted">Ruta:</dt>
+                    <dd class="col-sm-7 fw-bold">{{ vuelo.origen }} &rarr; {{ vuelo.destino }}</dd>
+
+                    <dt class="col-sm-5 text-muted">Fecha y Hora de Salida:</dt>
+                    <dd class="col-sm-7 fw-bold">{{ vuelo.fecha_salida|date:"d/m/Y H:i" }}</dd>
+
+                    <dt class="col-sm-5 text-muted">¡Tu Asiento Seleccionado!:</dt>
+                    <dd class="col-sm-7 fw-bold text-danger display-6">{{ reserva.asiento.fila }}{{ reserva.asiento.columna }}</dd>
+                    
+                    <dt class="col-sm-5 text-muted">Estado:</dt>
+                    <dd class="col-sm-7 fw-bold text-success">{{ reserva.get_estado_display }}</dd>
+                </dl>
+                
+                <hr class="mt-4">
+                <p class="text-center text-muted small">
+                    Guardar esta información. Debes presentarte 2 horas antes de la salida.
+                </p>
+                
+                <div class="d-grid gap-2 mt-3">
+                    <a href="{% url 'vuelos_disponibles' %}" class="btn btn-primary btn-lg">
+                        <i class="bi bi-arrow-left-circle me-1"></i> Volver a Vuelos
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

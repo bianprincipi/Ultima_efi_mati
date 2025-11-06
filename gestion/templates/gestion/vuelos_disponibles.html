@@ -1,0 +1,116 @@
+{% extends "gestion/base.html" %}
+
+{% block title %}Vuelos Disponibles{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <!-- Encabezado y Barra de Búsqueda -->
+    <div class="bg-white shadow-xl rounded-2xl p-6 mb-10 border-t-4 border-indigo-600">
+        <h1 class="text-4xl font-extrabold text-gray-900 mb-2">Encuentra tu próximo destino</h1>
+        <p class="text-gray-600 mb-6">Busca entre nuestros vuelos disponibles y reserva tu asiento hoy mismo.</p>
+
+        <!-- Formulario de Búsqueda (Placeholder funcional para estética) -->
+        <form method="GET" action="{% url 'gestion:vuelos_disponibles' %}" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div class="col-span-1">
+                <label for="origen" class="block text-sm font-medium text-gray-700 mb-1">Origen</label>
+                <input type="text" id="origen" name="origen" placeholder="Ej: Buenos Aires (BUE)" 
+                       class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-3 transition duration-150 ease-in-out" />
+            </div>
+            <div class="col-span-1">
+                <label for="destino" class="block text-sm font-medium text-gray-700 mb-1">Destino</label>
+                <input type="text" id="destino" name="destino" placeholder="Ej: Córdoba (COR)" 
+                       class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-3 transition duration-150 ease-in-out" />
+            </div>
+            <div class="col-span-1">
+                <label for="fecha" class="block text-sm font-medium text-gray-700 mb-1">Fecha de Salida</label>
+                <input type="date" id="fecha" name="fecha" 
+                       class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-3 transition duration-150 ease-in-out" />
+            </div>
+            <div class="col-span-1 flex items-end">
+                <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-4 rounded-lg shadow-md transition duration-300 ease-in-out">
+                    Buscar Vuelos
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Lista de Vuelos -->
+    <h2 class="text-3xl font-bold text-gray-800 mb-6">Próximas Salidas</h2>
+
+    {% if vuelos %}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {% for vuelo in vuelos %}
+                <!-- Tarjeta de Vuelo Individual -->
+                <div class="bg-white rounded-xl shadow-lg hover:shadow-2xl transition duration-300 overflow-hidden border border-gray-100">
+                    <div class="p-6">
+                        <!-- Cabecera de Ruta y Aerolínea -->
+                        <div class="flex justify-between items-center mb-4 pb-4 border-b">
+                            <h3 class="text-2xl font-bold text-indigo-700">
+                                {{ vuelo.get_origen_display }} <span class="text-gray-400">→</span> {{ vuelo.get_destino_display }}
+                            </h3>
+                            <span class="text-sm font-medium bg-blue-100 text-blue-800 px-3 py-1 rounded-full">
+                                {{ vuelo.aerolinea }}
+                            </span>
+                        </div>
+
+                        <!-- Detalles del Vuelo -->
+                        <div class="space-y-3 text-gray-700">
+                            <!-- Fecha y Hora de Salida -->
+                            <div class="flex items-center">
+                                <!-- Icono de Salida (inline SVG) -->
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-500 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l3 3a1 1 0 001.414-1.414L11 9.586V6z" clip-rule="evenodd" />
+                                </svg>
+                                <div>
+                                    <span class="font-semibold">Sale:</span> 
+                                    {{ vuelo.fecha_salida|date:"d M y" }} a las {{ vuelo.hora_salida|time:"H:i" }}
+                                </div>
+                            </div>
+
+                            <!-- Hora Estimada de Llegada -->
+                            <div class="flex items-center">
+                                <!-- Icono de Llegada (inline SVG) -->
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-red-500 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                                  <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
+                                </svg>
+                                <div>
+                                    <span class="font-semibold">Llega:</span> 
+                                    <!-- Usamos la propiedad calculada 'hora_llegada' del modelo -->
+                                    {{ vuelo.hora_llegada|time:"H:i" }} 
+                                </div>
+                            </div>
+                            
+                            <!-- Duración y Vuelo ID -->
+                            <div class="flex justify-between text-sm pt-2 border-t border-dashed mt-4">
+                                <span class="text-gray-500">Vuelo #{{ vuelo.numero_vuelo }}</span>
+                                <span class="font-medium text-gray-600">Duración: {{ vuelo.duracion|floatformat:2 }} hs</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Pie de Tarjeta con Precio y Botón de Reserva -->
+                    <div class="bg-gray-50 p-6 flex justify-between items-center">
+                        <div class="text-left">
+                            <span class="block text-lg text-gray-500">Desde</span>
+                            <span class="text-3xl font-extrabold text-indigo-600">${{ vuelo.precio_base|floatformat:0 }}</span>
+                            <span class="text-gray-500">ARS</span>
+                        </div>
+                        <a href="{% url 'gestion:detalle_vuelo' pk=vuelo.pk %}" 
+                           class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-lg shadow-xl transform hover:scale-105 transition duration-300 ease-in-out">
+                            Ver Detalles
+                        </a>
+                    </div>
+                </div>
+                <!-- Fin Tarjeta de Vuelo Individual -->
+            {% endfor %}
+        </div>
+    {% else %}
+        <!-- Mensaje si no hay vuelos -->
+        <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 rounded-lg" role="alert">
+            <p class="font-bold">¡Vaya!</p>
+            <p>No se encontraron vuelos disponibles que coincidan con los criterios de búsqueda.</p>
+        </div>
+    {% endif %}
+
+</div>
+{% endblock content %}

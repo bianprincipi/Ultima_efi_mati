@@ -1,34 +1,26 @@
+# aerolinea/urls.py
 
-# En tu archivo urls.py principal (aerolinea/urls.py)
 from django.contrib import admin
 from django.urls import path, include
-from django.contrib.auth import views as auth_views
-from gestion import views
+from rest_framework.routers import DefaultRouter
+
+# Asegúrate de que estas importaciones sean correctas (o usa api_views)
+from gestion import views 
+from gestion import api_views as api 
+
+# Configuración del Router de DRF
+router = DefaultRouter()
+router.register(r'vuelos', api.VueloAPIViewSet, basename='vuelos-api') 
+# ... otros router.register si existen ...
 
 urlpatterns = [
+    # Rutas de administración y autenticación
     path('admin/', admin.site.urls),
+    path('accounts/', include('django.contrib.auth.urls')), 
     
-    # Página principal
-    path('', views.panel_resumen, name='panel_resumen'),  # o la vista que uses
-   path('', views.home_view, name='home'), 
-    # Otras páginas principales
-    path('reservar/', views.reservar_asiento, name='reservar_asiento'),
-    path('reportes/', views.reporte_pasajeros, name='reporte_pasajeros'),
+    # Rutas de la API (DRF)
+    path('api/v1/', include(router.urls)), 
     
-    # URLs de autenticación con redirección explícita
-    p path('admin/', admin.site.urls),
-
-    path('', views.panel_resumen, name='panel_resumen'),
-
-    path('accounts/login/', auth_views.LoginView.as_view(
-        template_name='registration/login.html',
-        redirect_authenticated_user=True
-    ), name='login'),
-
-    path('accounts/logout/', auth_views.LogoutView.as_view(
-        next_page='login'
-    ), name='logout'),
-
-    path('accounts/', include('django.contrib.auth.urls')),
-    
+    # 💥 LA SOLUCIÓN AL 404: Incluir las URLs de la aplicación principal en la raíz 💥
+ path('', include('your_app_name.urls')), ## Asigna gestion.urls a la URL raíz ('')
 ]

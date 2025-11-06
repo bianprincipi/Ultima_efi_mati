@@ -1,59 +1,63 @@
+# gestion/urls.py
+
 from django.urls import path
-from django.shortcuts import redirect
-from . import views
-from gestion.views import (
-    login_view,
-    logout_view,
-    registro_view,
-    vuelos_disponibles,
-    reservar_asiento,
-    ver_boleto,
-    generar_pdf_boleto,
-    reporte_pasajeros,
-    exportar_reporte_pdf,
-    exportar_reporte_csv,
-    vuelo_admin,
-    editar_vuelo,
-    agregar_vuelo,
-    cancelar_vuelo,
-)
+from django.contrib.auth.views import LogoutView 
+from django.views.generic import TemplateView
+from . import views 
 
-# Vista raíz que redirige según el rol
-def home_redirect(request):
-    if request.user.is_authenticated:
-        if hasattr(request.user, 'rol') and request.user.rol == request.user.Rol.ADMIN:
-            return redirect('vuelo_admin')
-        else:
-            return redirect('vuelos_disponibles')
-    return redirect('login')
-
+# Namespace de la aplicación (ayuda a prevenir colisiones de nombres: gestion:nombre_url)
+app_name = 'gestion' 
 
 urlpatterns = [
-    # Raíz
-    path('', home_redirect, name='home'),
+    # =================================================================
+    # 1. VISTAS PÚBLICAS / HOME
+    # =================================================================
+    
+    # HOME - Lista de vuelos para el público
+    path('', views.ListaVuelosView.as_view(), name='vuelos_disponibles'),
+    
+    # =================================================================
+    # 2. VISTAS DE AUTENTICACIÓN
+    # =================================================================
 
-    # Autenticación
-    path('login/', login_view, name='login'),
-    path('logout/', logout_view, name='logout'),
-    path('registro/', registro_view, name='registro'),
+    # Login
+    path('login/', views.login_view, name='login'), 
+    
+    # Registro 
+    path('registro/', views.registro_view, name='registro'),
+    
+    # Perfil (Usando TemplateView como placeholder)
+    path('perfil/', TemplateView.as_view(template_name='gestion/perfil.html'), name='perfil'),
+    
+    # Cierre de Sesión (Logout)
+    path('logout/', LogoutView.as_view(next_page='/'), name='logout'),
+    
+    # =================================================================
+    # 3. VISTAS DE GESTIÓN HTML (CRUD ADMIN)
+    # =================================================================
 
-    # Vuelos para pasajeros
-    path('vuelos/', vuelos_disponibles, name='vuelos_disponibles'),
-    path('reservar_asiento/', reservar_asiento, name='reservar_asiento'),
+    # CRUD de Vuelos
+    path('admin/vuelos/', views.VueloAdminListView.as_view(), name='vuelos_admin_list'),
+    
+    # Vuelo Crear (¡CORREGIDO: usa .as_view()!)
+    path('admin/vuelos/crear/', views.VueloCreateView.as_view(), name='vuelo_crear'), 
+    
+    path('admin/vuelos/editar/<int:pk>/', views.VueloUpdateView.as_view(), name='vuelo_editar'),
+    path('admin/vuelos/eliminar/<int:pk>/', views.VueloDeleteView.as_view(), name='vuelo_eliminar'),
+    
+    # =================================================================
+    # 4. VISTAS DE RESERVA Y PASAJERO
+    # =================================================================
 
-    # Boletos
-    path('boleto/<int:reserva_id>/', ver_boleto, name='ver_boleto'),
-    path('boleto/pdf/<int:reserva_id>/', generar_pdf_boleto, name='generar_pdf_boleto'),
-
-    # Panel de administración de vuelos (solo admin) — prefijo panel/
-    path('panel/vuelos/', vuelo_admin, name='vuelo_admin'),
-    path('panel/vuelos/agregar/', agregar_vuelo, name='agregar_vuelo_admin'),
-    path('panel/vuelos/editar/<int:vuelo_id>/', editar_vuelo, name='editar_vuelo'),
-    path('panel/vuelos/cancelar/<int:vuelo_id>/', cancelar_vuelo, name='cancelar_vuelo'),
-
-    # Reportes de pasajeros (solo admin)
-    path('panel/reporte/pasajeros/<int:vuelo_id>/', reporte_pasajeros, name='reporte_pasajeros'),
-    path('panel/reporte/pdf/<int:vuelo_id>/', exportar_reporte_pdf, name='exportar_reporte_pdf'),
- 
-    path('panel/reporte/csv/<int:vuelo_id>/', exportar_reporte_csv, name='exportar_reporte_csv'),
+    # Detalle del Vuelo
+    path('vuelos/<int:pk>/detalle/', views.detalle_vuelo_view, name='detalle_vuelo'),
+    
+    # Creación de Reserva (paso 1)
+    path('vuelos/<int:vuelo_pk>/reservar/', views.crear_reserva_view, name='crear_reserva'),
+    
+    # Selección de Asiento (paso 2)
+    path('reserva/<int:reserva_pk>/asiento/', views.seleccionar_asiento_view, name='seleccionar_asiento'),
+    
+    # Detalle/Confirmación de Reserva
+    path('reserva/<int:pk>/', views.reserva_detalle_view, name='reserva_detalle'),
 ]

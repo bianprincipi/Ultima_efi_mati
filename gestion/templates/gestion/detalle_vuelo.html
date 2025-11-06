@@ -1,0 +1,86 @@
+{% extends 'gestion/base.html' %}
+
+{% block title %}Vuelo {{ vuelo.codigo_vuelo }} - Detalle{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-5">
+    <div class="row mb-4">
+        <div class="col-lg-8 mx-auto">
+            <h2 class="display-5 fw-bold text-primary mb-1">
+                <i class="bi bi-airplane-fill me-2"></i>Vuelo {{ vuelo.codigo_vuelo }}
+            </h2>
+            <p class="text-muted fs-5">{{ vuelo.origen }} <i class="bi bi-arrow-right mx-2"></i> {{ vuelo.destino }}</p>
+            <hr>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            
+            <div class="card shadow-sm mb-5 border-0 rounded-4">
+                <div class="card-header bg-light text-primary fw-bold">Detalles de la Salida</div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <strong>Origen:</strong> {{ vuelo.origen }}
+                            <br>
+                            <strong>Salida:</strong> {{ vuelo.fecha_salida|date:"d/m/Y H:i" }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <strong>Destino:</strong> {{ vuelo.destino }}
+                            <br>
+                            <strong>Llegada:</strong> {{ vuelo.fecha_llegada|date:"d/m/Y H:i" }}
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <strong>Avión:</strong> {{ vuelo.avion.modelo }} ({{ vuelo.avion.matricula }})
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Precio Base:</strong> <span class="badge bg-success">${{ vuelo.precio_base }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {% if user.is_authenticated and user.is_pasajero %}
+                <h4 class="mt-5 mb-3 fw-bold">Selección de Asiento</h4>
+                <div class="alert alert-info py-2" role="alert">
+                    <i class="bi bi-info-circle me-1"></i> Selecciona un asiento **disponible** (verde) y presiona **Reservar**.
+                </div>
+
+                <form method="POST" action="{% url 'reservar_asiento' %}" class="card p-4 shadow-lg rounded-4 bg-light">
+                    {% csrf_token %}
+                    
+                    {{ form_seleccion_asiento.vuelo_id }} 
+                    {{ form_seleccion_asiento.asiento_id }}
+
+                    <div id="seat-map" class="d-flex flex-wrap justify-content-center gap-2 p-3">
+                        {% for asiento in asientos_disponibles %}
+                            {% comment %} Genera el número del asiento para mostrar y el ID para seleccionar {% endcomment %}
+                            <button type="submit" 
+                                    name="asiento_id" 
+                                    value="{{ asiento.id }}"
+                                    data-vuelo-id="{{ vuelo.id }}"
+                                    class="btn btn-sm btn-success seat-btn m-1"
+                                    title="Fila: {{ asiento.fila }}, Columna: {{ asiento.columna }} | Extra: ${{ asiento.precio_extra }}">
+                                {{ asiento.fila }}{{ asiento.columna }}
+                            </button>
+                        {% empty %}
+                            <p class="text-danger fw-bold">❌ No hay asientos disponibles en este vuelo.</p>
+                        {% endfor %}
+                    </div>
+                    
+                    <input type="hidden" name="vuelo_id" value="{{ vuelo.id }}">
+                </form>
+
+            {% else %}
+                <div class="alert alert-warning text-center mt-4">
+                    <i class="bi bi-lock-fill me-2"></i> Debes <a href="{% url 'login' %}">iniciar sesión</a> o <a href="{% url 'registro' %}">registrarte</a> para reservar asientos.
+                </div>
+            {% endif %}
+
+        </div>
+    </div>
+</div>
+{% endblock %}

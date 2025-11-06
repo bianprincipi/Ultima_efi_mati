@@ -1,11 +1,10 @@
-from functools import wraps
-from django.shortcuts import redirect
+# gestion/decorators.py
 
-def pasajero_required(view_func):
-    @wraps(view_func)
-    def _wrapped_view(request, *args, **kwargs):
-        if hasattr(request.user, 'rol') and request.user.rol == 'PASAJERO':
-            return view_func(request, *args, **kwargs)
-        else:
-            return redirect('vuelos')  # O a otra página con mensaje
-    return _wrapped_view
+from django.contrib.auth.decorators import user_passes_test
+
+def is_admin_check(user):
+    """Verifica si el usuario es un administrador usando la propiedad is_admin."""
+    # Usamos la propiedad del modelo Usuario que incluye superusuarios
+    return user.is_authenticated and user.is_admin
+
+admin_required = user_passes_test(is_admin_check, login_url='/login/')
