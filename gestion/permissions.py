@@ -2,35 +2,26 @@
 
 from rest_framework import permissions
 from django.contrib.auth import get_user_model
-
+from rest_framework.permissions import BasePermission, SAFE_METHODS
 # Obtenemos el modelo de usuario para verificar el tipo de objeto
 Usuario = get_user_model() 
+from rest_framework.permissions import BasePermission
 
-class IsAdminRole(permissions.BasePermission):
+class IsAdminRole(BasePermission):
     """
-    Permiso personalizado para permitir solo el acceso a usuarios con rol ADMIN.
+    Permite acceso solo a usuarios que sean staff o superusuario.
     """
-    message = 'Acceso denegado. Solo los administradores pueden realizar esta acción.'
-
     def has_permission(self, request, view):
-        # Asegúrate de que el usuario esté autenticado
-        if request.user.is_authenticated:
-            # Comprueba si el usuario tiene el rol ADMIN o es un superusuario (is_superuser)
-            # El superusuario (createsuperuser) debe tener acceso de Admin siempre.
-            return (hasattr(request.user, 'rol') and request.user.rol == request.user.Rol.ADMIN) or request.user.is_superuser
-        return False
+        return request.user and (request.user.is_staff or request.user.is_superuser)
 
-class IsPasajeroRole(permissions.BasePermission):
-    """
-    Permiso personalizado para permitir solo el acceso a usuarios con rol PASAJERO.
-    """
-    message = 'Acceso denegado. Solo los pasajeros pueden realizar esta acción.'
 
+class IsPasajeroRole(BasePermission):
+    """
+    Permite acceso solo a usuarios NO administradores (pasajeros).
+    """
     def has_permission(self, request, view):
-        if request.user.is_authenticated:
-            # Comprueba si el usuario tiene el rol PASAJERO
-            return hasattr(request.user, 'rol') and request.user.rol == request.user.Rol.PASAJERO
-        return False
+        return request.user and not request.user.is_staff and not request.user.is_superuser
+
         
 class IsOwnerOrAdmin(permissions.BasePermission):
     """

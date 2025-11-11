@@ -127,7 +127,7 @@
                     <a href="{% url 'generar_pdf_boleto' reserva.id %}" class="btn btn-primary btn-lg mr-3">
                         <i class="fas fa-download mr-2"></i>Descargar PDF
                     </a>
-                    <a href="{% url 'vuelos_disponibles' %}" class="btn btn-outline-secondary btn-lg">
+                    <a href="{% url 'gestion:vuelos_disponibles' %}" class="btn btn-outline-secondary btn-lg">
                         <i class="fas fa-arrow-left mr-2"></i>Volver a Vuelos
                     </a>
                 </div>
@@ -138,7 +138,7 @@
                         <div class="card-body py-5">
                             <i class="fas fa-exclamation-triangle text-warning fa-3x mb-3"></i>
                             <h4 class="text-muted">No se encontró un boleto para esta reserva</h4>
-                            <a href="{% url 'vuelos_disponibles' %}" class="btn btn-primary mt-3">
+                            <a href="{% url 'gestion:vuelos_disponibles' %}" class="btn btn-primary mt-3">
                                 <i class="fas fa-search mr-2"></i>Buscar Vuelos
                             </a>
                         </div>

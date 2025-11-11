@@ -4,17 +4,15 @@ from django.utils.translation import gettext_lazy as _
 from django.core.validators import MinValueValidator, RegexValidator
 from django.utils import timezone
 from django.core.exceptions import ValidationError
+import uuid
 import random
 import string
-import uuid
 
-# --------------------
-# USUARIO (Hereda de AbstractUser)
-# ESTE ES EL PASAJERO/ADMINISTRADOR
-# --------------------
+# =========================
+# USUARIO (PASAJERO / ADMIN)
+# =========================
 
 class Usuario(AbstractUser):
-    # Campos personalizados del usuario (que antes eran de Pasajero)
     documento = models.CharField(
         max_length=20,
         unique=True,
@@ -26,7 +24,6 @@ class Usuario(AbstractUser):
     )
     fecha_nacimiento = models.DateField(null=True, blank=True)
 
-    # Definición de Roles (clave para los permisos DRF)
     class Rol(models.TextChoices):
         ADMIN = 'AD', 'Administrador'
         PASAJERO = 'PA', 'Pasajero'
@@ -34,7 +31,7 @@ class Usuario(AbstractUser):
     rol = models.CharField(max_length=2, choices=Rol.choices, default=Rol.PASAJERO)
 
     def __str__(self):
-        return f"{self.get_full_name()} - {self.get_rol_display()}"
+        return f"{self.get_full_name() or self.username} - {self.get_rol_display()}"
 
     @property
     def is_admin(self):
@@ -45,9 +42,10 @@ class Usuario(AbstractUser):
         return self.rol == self.Rol.PASAJERO
 
 
-# --------------------
+# ==========
 # AVIÓN
-# --------------------
+# ==========
+
 class Avion(models.Model):
     modelo = models.CharField(max_length=100)
     capacidad = models.PositiveIntegerField(validators=[MinValueValidator(1)])
@@ -65,9 +63,10 @@ class Avion(models.Model):
         return f"{self.modelo} ({self.matricula})"
 
 
-# --------------------
+# ==========
 # VUELO
-# --------------------
+# ==========
+
 class Vuelo(models.Model):
     class Estado(models.TextChoices):
         PROGRAMADO = 'programado', _('Programado')
@@ -76,36 +75,33 @@ class Vuelo(models.Model):
         COMPLETADO = 'completado', _('Completado')
         EN_CURSO = 'en_curso', _('En Curso')
 
-    avion = models.ForeignKey('Avion', on_delete=models.PROTECT, related_name='vuelos')
+    avion = models.ForeignKey(Avion, on_delete=models.PROTECT, related_name='vuelos')
     codigo_vuelo = models.CharField(max_length=10, unique=True)
     origen = models.CharField(max_length=100, db_index=True)
     destino = models.CharField(max_length=100, db_index=True)
     fecha_salida = models.DateTimeField()
     fecha_llegada = models.DateTimeField()
     duracion = models.DurationField(null=True, blank=True)
+
     estado = models.CharField(
         max_length=20,
         choices=Estado.choices,
         default=Estado.PROGRAMADO
     )
+
     precio_base = models.DecimalField(
         max_digits=10,
         decimal_places=2,
         validators=[MinValueValidator(0)]
     )
-    # Tripulación: Limitado solo a Administradores
-    tripulacion = models.ManyToManyField(
-        'Usuario',
-        limit_choices_to={'rol': Usuario.Rol.ADMIN}, 
-        blank=True
-    )
 
-    def clean(self):
-        # Validar que la fecha de llegada sea posterior a la de salida
-        if self.fecha_salida and self.fecha_llegada:
-            if self.fecha_llegada <= self.fecha_salida:
-                raise ValidationError("La fecha de llegada debe ser posterior a la fecha de salida.")
-        super().clean() 
+    # Tripulación: solo usuarios con rol ADMIN
+    tripulacion = models.ManyToManyField(
+        Usuario,
+        limit_choices_to={'rol': Usuario.Rol.ADMIN},
+        blank=True,
+        related_name='vuelos_asignados'
+    )
 
     class Meta:
         ordering = ['fecha_salida']
@@ -117,23 +113,29 @@ class Vuelo(models.Model):
     def __str__(self):
         return f"{self.codigo_vuelo}: {self.origen} → {self.destino}"
 
+    def clean(self):
+        if self.fecha_salida and self.fecha_llegada:
+            if self.fecha_llegada <= self.fecha_salida:
+                raise ValidationError("La fecha de llegada debe ser posterior a la fecha de salida.")
+        super().clean()
+
     @property
     def cancelado(self):
         return self.estado == self.Estado.CANCELADO
 
-# --------------------
+
+# ==========
 # ASIENTO
-# --------------------
+# ==========
+
 class Asiento(models.Model):
-    # Tipos de Asiento (Clase)
     class Tipo(models.TextChoices):
         ECONOMY = 'economy', _('Economy')
         PREMIUM = 'premium', _('Premium')
         BUSINESS = 'business', _('Business')
         FIRST = 'first', _('First Class')
-    
-    # Estado de Ocupación
-    class Ocupacion(models.TextChoices): 
+
+    class Ocupacion(models.TextChoices):
         DISPONIBLE = 'disponible', _('Disponible')
         RESERVADO = 'reservado', _('Reservado')
         OCUPADO = 'ocupado', _('Ocupado')
@@ -144,88 +146,69 @@ class Asiento(models.Model):
     numero = models.CharField(max_length=10)
     fila = models.PositiveIntegerField()
     columna = models.CharField(max_length=5)
-    tipo = models.CharField(max_length=20, choices=Tipo.choices, default=Tipo.ECONOMY)
-    
-    # Usando la enumeración Ocupacion
-    estado = models.CharField(max_length=20, choices=Ocupacion.choices, default=Ocupacion.DISPONIBLE) 
-    
+
+    tipo = models.CharField(
+        max_length=20,
+        choices=Tipo.choices,
+        default=Tipo.ECONOMY
+    )
+
+    estado = models.CharField(
+        max_length=20,
+        choices=Ocupacion.choices,
+        default=Ocupacion.DISPONIBLE
+    )
+
     precio_extra = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 
     class Meta:
-        # Unicidad por (vuelo, numero) para evitar dos asientos iguales en el mismo vuelo.
-        unique_together = ['vuelo', 'numero'] 
+        unique_together = ['vuelo', 'numero']
         ordering = ['fila', 'columna']
 
     def __str__(self):
-        return f"Asiento {self.numero} ({self.get_tipo_display()})"
+        return f"Asiento {self.numero} - {self.vuelo.codigo_vuelo}"
 
 
-# --------------------
+# ==========
 # RESERVA
-# --------------------
+# ==========
+
 class Reserva(models.Model):
     class Estado(models.TextChoices):
-        PENDIENTE = 'pendiente', _('Pendiente')
-        CONFIRMADA = 'confirmada', _('Confirmada')
-        CANCELADA = 'cancelada', _('Cancelada')
-        CHECKIN = 'checkin', _('Check-In Realizado')
+        PENDIENTE = 'P', 'Pendiente'
+        CONFIRMADA = 'C', 'Confirmada'
+        CANCELADA = 'X', 'Cancelada'
 
     vuelo = models.ForeignKey(Vuelo, on_delete=models.PROTECT, related_name='reservas')
-    # Clave Foránea apuntando al modelo Usuario
-    pasajero = models.ForeignKey(
-        Usuario,
+    pasajero = models.ForeignKey('Usuario', on_delete=models.PROTECT, related_name='reservas')
+    asiento = models.ForeignKey(
+        'Asiento',
         on_delete=models.PROTECT,
-        limit_choices_to={'rol': Usuario.Rol.PASAJERO},
+        null=True,
+        blank=True,
         related_name='reservas'
     )
-    asiento = models.OneToOneField(Asiento, on_delete=models.PROTECT, related_name='reserva')
-    estado = models.CharField(max_length=20, choices=Estado.choices, default=Estado.PENDIENTE)
-    fecha_reserva = models.DateTimeField(auto_now_add=True)
-    fecha_modificacion = models.DateTimeField(auto_now=True)
-    codigo_reserva = models.CharField(max_length=12, unique=True, editable=False)
-    precio_final = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
-    equipaje_mano = models.BooleanField(default=True)
-    equipaje_bodega = models.PositiveIntegerField(default=0)
-    requerimientos_especiales = models.TextField(blank=True)
+    estado = models.CharField(
+        max_length=1,
+        choices=Estado.choices,
+        default=Estado.PENDIENTE
+    )
 
-    class Meta:
-        constraints = [
-            models.UniqueConstraint(fields=['pasajero', 'vuelo'], name='reserva_unica_por_pasajero_y_vuelo'),
-            models.CheckConstraint(check=models.Q(precio_final__gte=0), name='precio_final_positivo')
-        ]
-        ordering = ['-fecha_reserva']
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_modificacion = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"Reserva {self.codigo_reserva} - {self.pasajero.get_full_name()}"
+        return f"Reserva {self.id} - {self.pasajero} - {self.vuelo}"
+    @property
+    def precio_final(self):
+        base = self.vuelo.precio_base if self.vuelo and self.vuelo.precio_base else 0
+        extra = self.asiento.precio_extra if self.asiento else 0
+        return base + extra
 
-    def save(self, *args, **kwargs):
-        if not self.codigo_reserva:
-            self.codigo_reserva = self.generar_codigo_unico()
-        super().save(*args, **kwargs)
-
-    def generar_codigo_unico(self):
-        for _ in range(10):
-            codigo = ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
-            if not Reserva.objects.filter(codigo_reserva=codigo).exists():
-                return codigo
-        raise ValueError("No se pudo generar un código único de reserva")
-
-    def calcular_precio_final(self):
-        if self.asiento:
-            return self.vuelo.precio_base + self.asiento.precio_extra
-        return self.vuelo.precio_base
-
-    def cancelar(self):
-        self.estado = self.Estado.CANCELADA
-        if self.asiento:
-            self.asiento.estado = Asiento.Ocupacion.DISPONIBLE
-            self.asiento.save()
-        super().save()
-
-
-# --------------------
+# ==========
 # BOLETO
-# --------------------
+# ==========
+
 class Boleto(models.Model):
     class Estado(models.TextChoices):
         ACTIVO = 'activo', _('Activo')
@@ -233,7 +216,7 @@ class Boleto(models.Model):
         ANULADO = 'anulado', _('Anulado')
 
     reserva = models.OneToOneField(Reserva, on_delete=models.PROTECT, related_name='boleto')
-    codigo_barra = models.CharField(max_length=30, unique=True, editable=False)
+    codigo_barra = models.CharField(max_length=50, unique=True, editable=False)
     fecha_emision = models.DateTimeField(auto_now_add=True)
     fecha_checkin = models.DateTimeField(null=True, blank=True)
     estado = models.CharField(max_length=20, choices=Estado.choices, default=Estado.ACTIVO)
@@ -251,7 +234,9 @@ class Boleto(models.Model):
         super().save(*args, **kwargs)
 
     def generar_codigo_barra(self):
-        return f"B{self.reserva.codigo_reserva}{uuid.uuid4().hex[:6].upper()}"
+        # Usa datos existentes y algo random
+        base = f"{self.reserva.vuelo.codigo_vuelo}-{self.reserva.pasajero.id}-{self.reserva.id}"
+        return f"B-{base}-{uuid.uuid4().hex[:4].upper()}"
 
     def marcar_como_usado(self):
         self.estado = self.Estado.USADO
@@ -261,4 +246,3 @@ class Boleto(models.Model):
     def anular(self):
         self.estado = self.Estado.ANULADO
         self.save()
-        self.reserva.cancelar()

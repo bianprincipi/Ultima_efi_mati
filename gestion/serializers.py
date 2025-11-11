@@ -1,9 +1,19 @@
 # gestion/serializers.py
 
 from rest_framework import serializers
-from .models import Vuelo, Avion, Usuario, Asiento, Reserva # Importa todos los modelos necesarios
+from .models import Vuelo, Avion, Usuario, Asiento, Reserva, Boleto# Importa todos los modelos necesarios
+
+class PasajeroSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Usuario
+        # ajustá campos según tu modelo de usuario
+        fields = ['id', 'username', 'first_name', 'last_name', 'email']
 
 
+class BoletoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Boleto
+        fields = '__all__'
 # =================================================================
 # 1. SERIALIZADORES DE MODELOS BÁSICOS
 # =================================================================
@@ -105,3 +115,5 @@ class ReservaSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError("Este asiento ya está ocupado en el vuelo seleccionado.")
         
         return data
+        
+        

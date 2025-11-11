@@ -1,60 +1,49 @@
-{% extends 'gestion/base.html' %}
+{% extends "gestion/base.html" %}
 
-{% block title %}Gestión de Vuelos - Admin{% endblock %}
+{% block title %}Gestión de Vuelos{% endblock %}
 
 {% block content %}
-<div class="container py-5">
-    <h2 class="display-4 fw-bold text-danger mb-4">
-        <i class="bi bi-person-gear me-3"></i>Panel de Administración de Vuelos
-    </h2>
-    
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h4>Vuelos Registrados ({{ vuelos|length }})</h4>
-        <a href="{% url 'vuelo_crear' %}" class="btn btn-primary btn-lg">
-            <i class="bi bi-plus-circle me-1"></i> Crear Nuevo Vuelo
-        </a>
-    </div>
+<h1>Gestión de Vuelos</h1>
 
-    <div class="table-responsive">
-        <table class="table table-striped table-hover shadow-sm rounded-3 overflow-hidden">
-            <thead class="bg-dark text-white">
-                <tr>
-                    <th>Código</th>
-                    <th>Ruta</th>
-                    <th>Salida</th>
-                    <th>Llegada</th>
-                    <th>Precio Base</th>
-                    <th>Avión</th>
-                    <th>Estado</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for vuelo in vuelos %}
-                <tr>
-                    <td>{{ vuelo.codigo_vuelo }}</td>
-                    <td>{{ vuelo.origen }} <i class="bi bi-arrow-right"></i> {{ vuelo.destino }}</td>
-                    <td>{{ vuelo.fecha_salida|date:"d/m/Y H:i" }}</td>
-                    <td>{{ vuelo.fecha_llegada|date:"d/m/Y H:i" }}</td>
-                    <td><span class="badge bg-success">${{ vuelo.precio_base }}</span></td>
-                    <td>{{ vuelo.avion.matricula }} ({{ vuelo.avion.modelo }})</td>
-                    <td><span class="badge bg-{% if vuelo.estado == 'programado' %}success{% elif vuelo.estado == 'cancelado' %}danger{% else %}warning{% endif %}">{{ vuelo.get_estado_display }}</span></td>
-                    <td>
-                        <a href="{% url 'vuelo_editar' pk=vuelo.pk %}" class="btn btn-sm btn-info me-1" title="Editar">
-                            <i class="bi bi-pencil"></i>
-                        </a>
-                        <a href="{% url 'vuelo_eliminar' pk=vuelo.pk %}" class="btn btn-sm btn-danger" title="Eliminar">
-                            <i class="bi bi-trash"></i>
-                        </a>
-                    </td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="8" class="text-center py-4 text-muted">✈️ ¡Hora de crear el primer vuelo! No hay vuelos registrados en el sistema.</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-</div>
+<a href="{% url 'vuelo_crear' %}" class="btn btn-success mb-3">+ Nuevo Vuelo</a>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Código</th>
+            <th>Origen</th>
+            <th>Destino</th>
+            <th>Fecha salida</th>
+            <th>Fecha llegada</th>
+            <th>Precio base</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for vuelo in vuelos %}
+        <tr>
+            <td>{{ vuelo.codigo_vuelo }}</td>
+            <td>{{ vuelo.origen }}</td>
+            <td>{{ vuelo.destino }}</td>
+
+            {# usa los nombres REALES del modelo #}
+            <td>{{ vuelo.fecha_salida|date:"d/m/Y H:i" }}</td>
+            <td>{{ vuelo.fecha_llegada|date:"d/m/Y H:i" }}</td>
+            <td>${{ vuelo.precio_base }}</td>
+
+            <td>{{ vuelo.get_estado_display }}</td>
+
+            <td>
+                <a href="{% url 'vuelo_editar' vuelo.id %}" class="btn btn-sm btn-primary">Editar</a>
+                <a href="{% url 'vuelo_eliminar' vuelo.id %}" class="btn btn-sm btn-danger">Eliminar</a>
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="8">No hay vuelos cargados.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
 {% endblock %}

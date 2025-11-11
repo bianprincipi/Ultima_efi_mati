@@ -1,0 +1,43 @@
+{% extends "gestion/base.html" %}
+{% block title %}Confirmar Reserva{% endblock %}
+
+{% block content %}
+<div class="aurora-section d-flex justify-content-center">
+    <div class="aurora-card p-4" style="max-width: 600px; width: 100%;">
+        <h2 class="mb-3">Confirmar Reserva</h2>
+
+        <p>
+            <strong>Vuelo:</strong> {{ vuelo.codigo_vuelo }}<br>
+            <strong>Origen:</strong> {{ vuelo.origen }}<br>
+            <strong>Destino:</strong> {{ vuelo.destino }}<br>
+            <strong>Salida:</strong> {{ vuelo.fecha_salida|date:"d/m/Y H:i" }}<br>
+            {% if vuelo.precio_base %}
+                <strong>Tarifa Base:</strong> ${{ vuelo.precio_base }}
+            {% endif %}
+        </p>
+
+        <hr>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+
+        <form method="post">
+            {% csrf_token %}
+            {# Si tu ReservaForm tiene campos adicionales, se muestran acá #}
+            {{ form.as_p }}
+
+            <div class="d-flex justify-content-between mt-3">
+                <a href="{% url 'vuelos_disponibles' %}" class="btn btn-outline-secondary">
+                    Cancelar
+                </a>
+                <button type="submit" class="btn btn-primary">
+                    Continuar a selección de asiento
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

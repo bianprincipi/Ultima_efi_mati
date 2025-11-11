@@ -1,44 +1,13 @@
-{% extends 'gestion/base.html' %}
-
-{% block title %}Reservar Vuelo {{ vuelo.codigo_vuelo }}{% endblock %}
+{% extends "gestion/base.html" %}
+{% block title %}Crear Reserva{% endblock %}
 
 {% block content %}
-<div class="container py-5">
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-            <h2 class="display-5 fw-bold text-primary mb-4">
-                <i class="bi bi-cash-stack me-2"></i> Paso 1: Datos de la Reserva
-            </h2>
+<h2>Reserva para vuelo {{ vuelo.codigo_vuelo }}</h2>
 
-            <div class="card shadow-lg border-0 rounded-4 p-4">
-                <h5 class="card-title text-muted">Vuelo: {{ vuelo.origen }} &rarr; {{ vuelo.destino }}</h5>
-                <hr>
-
-                <form method="post">
-                    {% csrf_token %}
-                    
-                    {% for field in form %}
-                    <div class="mb-3">
-                        <label for="{{ field.id_for_label }}" class="form-label fw-semibold">{{ field.label }}</label>
-                        {{ field }}
-                        {% if field.errors %}
-                            <div class="text-danger small mt-1">{{ field.errors }}</div>
-                        {% endif %}
-                        {% if field.help_text %}
-                            <div class="form-text">{{ field.help_text }}</div>
-                        {% endif %}
-                    </div>
-                    {% endfor %}
-
-                    <div class="d-flex justify-content-end mt-4">
-                        <a href="{% url 'detalle_vuelo' pk=vuelo.pk %}" class="btn btn-secondary me-2">Volver</a>
-                        <button type="submit" class="btn btn-success btn-lg">
-                            <i class="bi bi-arrow-right-circle-fill me-1"></i> Continuar a Asientos
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-primary">Continuar a selección de asiento</button>
+    <a href="{% url 'detalle_vuelo' vuelo.id %}" class="btn btn-secondary">Cancelar</a>
+</form>
 {% endblock %}

@@ -1,126 +1,75 @@
-{% extends 'gestion/base.html' %}
-
+{% extends "gestion/base.html" %}
 {% block title %}Seleccionar Asiento{% endblock %}
 
 {% block content %}
-<div class="container py-5">
-    <h2 class="display-5 fw-bold text-success mb-4">
-        <i class="bi bi-cursor-fill me-2"></i> Paso 2: Selecciona tu Asiento
+<div class="container mt-4">
+    <h2 class="mb-3">
+        Selecciona tu asiento para el vuelo {{ vuelo.codigo_vuelo }}
+        <small class="text-muted">({{ vuelo.origen }} → {{ vuelo.destino }})</small>
     </h2>
 
-    <div class="alert alert-info shadow-sm">
-        **Vuelo:** {{ vuelo.codigo_vuelo }} ({{ vuelo.origen }} &rarr; {{ vuelo.destino }}) | 
-        **Tu Reserva:** #{{ reserva.pk }} (Pasajero: {{ reserva.pasajero.username }})
-    </div>
+    <p>
+        <strong>Pasajero:</strong> {{ request.user.get_full_name|default:request.user.username }}<br>
+        <strong>Estado de la reserva:</strong> {{ reserva.get_estado_display }}
+    </p>
 
-    <div class="row">
-        <div class="col-md-12">
-            <div class="card shadow-lg border-0 rounded-4 p-4 text-center">
-                <h5 class="text-muted mb-4">Layout del Avión: {{ vuelo.avion.modelo }}</h5>
-                
-                <div class="d-flex justify-content-center mb-4">
-                    <span class="badge bg-success me-3">Disponible</span>
-                    <span class="badge bg-danger me-3">Ocupado</span>
-                    <span class="badge bg-primary">Seleccionado</span>
-                </div>
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
 
-                <form method="post">
-                    {% csrf_token %}
-                    <input type="hidden" name="asiento_id" id="asiento_id_input" required>
-
-                    <div class="seat-map-container overflow-auto p-3 border rounded-3 bg-light">
-                        <div class="row g-1 mb-2 fw-bold text-center">
-                            <div class="col-1"></div> {% for col in columnas %}
-                                <div class="col seat-column">{{ col }}</div>
-                            {% endfor %}
-                        </div>
-
-                        {% for fila, asientos_fila in layout.items %}
-                            <div class="row g-1 mb-1 align-items-center">
-                                <div class="col-1 fw-bold text-end">{{ fila }}</div>
-
-                                {% for col in columnas %}
-                                    <div class="col">
-                                        {% with asiento_data=asientos_fila|get_item:col %}
-                                            {% if asiento_data %}
-                                                {% if asiento_data.ocupado %}
-                                                    <button type="button" class="seat btn btn-danger btn-sm w-100" disabled title="Ocupado">
-                                                        <i class="bi bi-person-fill"></i>
-                                                    </button>
-                                                {% else %}
-                                                    <button type="button" class="seat btn btn-success btn-sm w-100" 
-                                                            data-id="{{ asiento_data.asiento.pk }}" 
-                                                            data-nombre="{{ fila }}{{ col }}"
-                                                            title="Asiento {{ fila }}{{ col }}">
-                                                        {{ col }}
-                                                    </button>
-                                                {% endif %}
+    {% if not layout %}
+        <div class="alert alert-warning">
+            No hay asientos configurados para este vuelo. Contacta al administrador.
+        </div>
+    {% else %}
+        <form method="post">
+            {% csrf_token %}
+            <div class="table-responsive">
+                <table class="table table-bordered text-center align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Fila</th>
+                            <th>Asientos</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for fila in layout %}
+                            <tr>
+                                <td><strong>{{ fila.fila }}</strong></td>
+                                <td>
+                                    {% for celda in fila.celdas %}
+                                        {% with asiento=celda.asiento %}
+                                            {% if celda.ocupado %}
+                                                <button type="button"
+                                                        class="btn btn-secondary btn-sm m-1"
+                                                        disabled>
+                                                    {{ asiento.fila }}{{ asiento.columna }}
+                                                </button>
                                             {% else %}
-                                                <div class="seat-gap w-100">&nbsp;</div>
+                                                <button type="submit"
+                                                        name="asiento_id"
+                                                        value="{{ asiento.id }}"
+                                                        class="btn btn-outline-primary btn-sm m-1">
+                                                    {{ asiento.fila }}{{ asiento.columna }}
+                                                </button>
                                             {% endif %}
                                         {% endwith %}
-                                    </div>
-                                {% endfor %}
-                            </div>
+                                    {% endfor %}
+                                </td>
+                            </tr>
                         {% endfor %}
-                    </div>
-                    
-                    <hr>
-                    <div class="d-flex justify-content-between align-items-center mt-4">
-                        <span id="seleccion-actual" class="fw-bold fs-5">Asiento Seleccionado: Ninguno</span>
-                        <button type="submit" id="confirmar-asiento-btn" class="btn btn-success btn-lg" disabled>
-                            <i class="bi bi-check-circle-fill me-1"></i> Confirmar Asiento
-                        </button>
-                    </div>
-                </form>
+                    </tbody>
+                </table>
             </div>
-        </div>
-    </div>
+        </form>
+    {% endif %}
+
+    <a href="{% url 'reserva_detalle' reserva.pk %}" class="btn btn-link mt-3">
+        ← Volver al detalle de la reserva
+    </a>
 </div>
-
-{% load custom_filters %} 
-
-<style>
-    /* Estilos básicos para el mapa, puedes mejorarlos con tu CSS */
-    .seat-map-container {
-        max-width: 800px;
-        margin: auto;
-    }
-    .seat {
-        height: 40px;
-        font-weight: bold;
-    }
-    .seat-gap {
-        height: 40px;
-    }
-    .seat-column {
-        padding: 0 5px;
-        font-size: 0.9em;
-    }
-</style>
-
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const seats = document.querySelectorAll('.seat:not([disabled])');
-        const asientoIdInput = document.getElementById('asiento_id_input');
-        const confirmarBtn = document.getElementById('confirmar-asiento-btn');
-        const seleccionActualSpan = document.getElementById('seleccion-actual');
-
-        seats.forEach(seat => {
-            seat.addEventListener('click', function() {
-                // Deseleccionar todos
-                seats.forEach(s => s.classList.replace('btn-primary', 'btn-success'));
-
-                // Seleccionar este
-                this.classList.replace('btn-success', 'btn-primary');
-                
-                // Actualizar inputs y textos
-                asientoIdInput.value = this.dataset.id;
-                seleccionActualSpan.textContent = 'Asiento Seleccionado: ' + this.dataset.nombre;
-                confirmarBtn.disabled = false;
-            });
-        });
-    });
-</script>
-
 {% endblock %}
+
+

@@ -2,29 +2,41 @@
 
 from django.contrib import admin
 from django.urls import path, include
-from rest_framework import routers 
-from gestion import api_views as api # Asumo que tienes un api_views.py en 'gestion'
-from django.contrib.auth.views import LogoutView 
+from rest_framework import routers
+from rest_framework.authtoken.views import obtain_auth_token
+from django.contrib.auth.views import LogoutView
 
-# Configuración del Router de Django REST Framework
+from gestion import api_views as api
+from gestion.api_views import (
+    PasajerosPorVueloReport,
+    ReservasActivasPorPasajeroReport,
+)
+
 router = routers.DefaultRouter()
-
-# CORRECCIÓN DE LA API (Asumo que el nombre es VueloViewSet)
-router.register(r'vuelos', api.VueloViewSet, basename='vuelos-api')
-router.register(r'aviones', api.AvionViewSet, basename='aviones-api')
-# Agrega aquí otros ViewSets
-
+router.register(r'vuelos', api.VueloViewSet, basename='vuelos')
+router.register(r'aviones', api.AvionViewSet, basename='aviones')
+router.register(r'pasajeros', api.PasajeroViewSet, basename='pasajeros')
+router.register(r'reservas', api.ReservaViewSet, basename='reservas')
+router.register(r'boletos', api.BoletoViewSet, basename='boletos')
 
 urlpatterns = [
-    # URLs de la administración de Django
     path('admin/', admin.site.urls),
-    
-    # URLs de la aplicación principal 'gestion'
+
+    # Web (HTML)
     path('', include('gestion.urls')),
 
-    # URLs de la API REST
+    # API REST
     path('api/', include(router.urls)),
 
-    # LOGOUT GLOBAL (Necesario para el formulario en base.html)
-    path('logout/', LogoutView.as_view(next_page='/'), name='logout'), 
+    # Auth Token
+    path('api/auth/', obtain_auth_token, name='api_token_auth'),
+
+    # Reportes
+    path('api/reportes/pasajeros-por-vuelo/', PasajerosPorVueloReport.as_view(),
+         name='reporte_pasajeros_por_vuelo'),
+    path('api/reportes/reservas-activas/', ReservasActivasPorPasajeroReport.as_view(),
+         name='reporte_reservas_activas'),
+
+    # Logout HTML
+    path('logout/', LogoutView.as_view(next_page='/'), name='logout'),
 ]

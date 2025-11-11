@@ -6,6 +6,36 @@ from rest_framework.exceptions import ValidationError, PermissionDenied
 # Asegúrate de que los Repositories y Models están importados correctamente
 from .repositories import VueloRepository, ReservaRepository 
 from .models import Asiento, Vuelo, Usuario, Reserva # Importa modelos necesarios
+from django.core.exceptions import ValidationError
+from .models import Reserva, Boleto
+from .repositories import asiento_disponible
+
+def crear_reserva(vuelo, pasajero, asiento):
+    if not asiento_disponible(vuelo, asiento):
+        raise ValidationError("El asiento no está disponible en este vuelo.")
+    reserva = Reserva.objects.create(
+        vuelo=vuelo,
+        pasajero=pasajero,
+        asiento=asiento,
+        estado='PENDIENTE'
+    )
+    return reserva
+
+def cambiar_estado_reserva(reserva, nuevo_estado):
+    if nuevo_estado not in ['PENDIENTE', 'CONFIRMADA', 'CANCELADA']:
+        raise ValidationError("Estado inválido.")
+    reserva.estado = nuevo_estado
+    reserva.save()
+    return reserva
+
+def generar_boleto(reserva):
+    if reserva.estado != 'CONFIRMADA':
+        raise ValidationError("Solo se puede generar boleto de una reserva CONFIRMADA.")
+    boleto, created = Boleto.objects.get_or_create(
+        reserva=reserva,
+        defaults={'codigo': f"BT-{reserva.id}"}
+    )
+    return boleto
 
 
 # --------------------------------

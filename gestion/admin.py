@@ -1,75 +1,91 @@
+# gestion/admin.py
+
 from django.contrib import admin
-from django.core.exceptions import ValidationError
-from django.forms import ModelForm
-from django.utils import timezone
-from .models import Avion, Vuelo, Asiento, Usuario, Reserva, Boleto
+from .models import Usuario, Avion, Vuelo, Asiento, Reserva, Boleto
 
-# 🔒 Formulario de validación para Reservas
-class ReservaAdminForm(ModelForm):
-    def clean(self):
-        cleaned_data = super().clean()
-        vuelo = cleaned_data.get('vuelo')
-        pasajero = cleaned_data.get('pasajero')
-        asiento = cleaned_data.get('asiento')
-
-        # Validación: un pasajero no puede reservar el mismo vuelo dos veces
-        if vuelo and pasajero:
-            if Reserva.objects.filter(vuelo=vuelo, pasajero=pasajero).exclude(pk=self.instance.pk).exists():
-                raise ValidationError("Este pasajero ya tiene una reserva para este vuelo.")
-
-        # Validación: un asiento no puede estar reservado dos veces
-        if asiento and Reserva.objects.filter(asiento=asiento).exclude(pk=self.instance.pk).exists():
-            raise ValidationError("Este asiento ya fue reservado.")
-
-        # Validación: no reservar vuelos pasados
-        if vuelo and vuelo.fecha_salida < timezone.now():
-            raise ValidationError("No se puede reservar un vuelo cuya fecha ya pasó.")
-
-        return cleaned_data
-
-# 🔧 Admin personalizado para Reservas
-@admin.register(Reserva)
-class ReservaAdmin(admin.ModelAdmin):
-    form = ReservaAdminForm
-    list_display = ('vuelo', 'pasajero', 'asiento', 'precio_final', 'estado')
-    search_fields = ('pasajero__first_name', 'pasajero__last_name', 'vuelo__origen', 'vuelo__destino')
-    list_filter = ('estado', 'vuelo__estado')
-
-# ✅ Admin para Boleto con acción de anulación
-@admin.register(Boleto)
-class BoletoAdmin(admin.ModelAdmin):
-    list_display = ('codigo_barra', 'reserva', 'estado', 'fecha_emision')
-    list_filter = ('estado',)
-    actions = ['anular_boletos']
-
-    @admin.action(description="❌ Anular boletos seleccionados")
-    def anular_boletos(self, request, queryset):
-        actualizados = 0
-        for boleto in queryset:
-            boleto.anular()
-            actualizados += 1
-        self.message_user(request, f"{actualizados} boleto(s) anulados correctamente.")
-
-# Admins para modelos básicos
-@admin.register(Avion)
-class AvionAdmin(admin.ModelAdmin):
-    list_display = ('modelo', 'capacidad', 'filas', 'columnas', 'matricula')
-    search_fields = ('modelo', 'matricula')
-
-@admin.register(Vuelo)
-class VueloAdmin(admin.ModelAdmin):
-    list_display = ('codigo_vuelo', 'origen', 'destino', 'fecha_salida', 'estado', 'precio_base')
-    list_filter = ('estado',)
-    search_fields = ('codigo_vuelo', 'origen', 'destino')
-
-@admin.register(Asiento)
-class AsientoAdmin(admin.ModelAdmin):
-    list_display = ('numero', 'avion', 'vuelo', 'fila', 'columna', 'tipo', 'estado')
-    list_filter = ('estado', 'tipo')
-    search_fields = ('numero',)
-
+# ---------- USUARIO ----------
 @admin.register(Usuario)
 class UsuarioAdmin(admin.ModelAdmin):
-    list_display = ('username', 'get_full_name', 'documento', 'rol', 'is_active')
-    list_filter = ('rol', 'is_active')
-    search_fields = ('username', 'first_name', 'last_name', 'documento')
+    list_display = ("username", "first_name", "last_name", "rol", "is_staff")
+    list_filter = ("rol", "is_staff")
+    search_fields = ("username", "first_name", "last_name", "email")
+
+
+# ---------- ASIENTO INLINE (dentro de Vuelo) ----------
+class AsientoInline(admin.TabularInline):
+    model = Asiento
+    extra = 5  # filas vacías para cargar asientos rápido
+    fields = ("numero", "fila", "columna", "tipo", "estado", "precio_extra")
+    # 'vuelo' y 'avion' se setean automáticamente, no los mostramos:
+    can_delete = True
+
+    def save_new_instance(self, form, commit=True):
+        """
+        (Solo para Django <5; en 5 podés manejar via formset)
+        No la usamos acá, vamos con override en VueloAdmin.save_formset.
+        """
+        instance = form.save(commit=False)
+        return instance
+
+
+# ---------- VUELO ----------
+@admin.register(Vuelo)
+class VueloAdmin(admin.ModelAdmin):
+    list_display = (
+        "codigo_vuelo",
+        "origen",
+        "destino",
+        "fecha_salida",
+        "fecha_llegada",
+        "precio_base",
+        "estado",
+        "avion",
+    )
+    list_filter = ("estado", "origen", "destino", "avion")
+    search_fields = ("codigo_vuelo", "origen", "destino")
+    inlines = [AsientoInline]
+
+    def save_formset(self, request, form, formset, change):
+        """
+        Cuando guardás los asientos inline, completamos vuelo y avión.
+        """
+        instances = formset.save(commit=False)
+        for obj in instances:
+            if isinstance(obj, Asiento):
+                # Vincular al vuelo actual
+                obj.vuelo = form.instance
+                # Asegurarnos que el avión coincida con el del vuelo
+                obj.avion = form.instance.avion
+            obj.save()
+        # Borrar los marcados para eliminar
+        for obj in formset.deleted_objects:
+            obj.delete()
+
+
+# ---------- AVION ----------
+@admin.register(Avion)
+class AvionAdmin(admin.ModelAdmin):
+    list_display = ("modelo", "matricula", "capacidad", "filas", "columnas")
+    search_fields = ("modelo", "matricula")
+
+
+# ---------- RESERVA ----------
+@admin.register(Reserva)
+class ReservaAdmin(admin.ModelAdmin):
+    list_display = ('id', 'vuelo', 'pasajero', 'estado', 'fecha_creacion', 'fecha_modificacion')
+    list_filter = ('estado', 'vuelo')
+    search_fields = ('pasajero__username', 'vuelo__codigo_vuelo')
+
+
+# ---------- BOLETO ----------
+@admin.register(Boleto)
+class BoletoAdmin(admin.ModelAdmin):
+    list_display = (
+        "codigo_barra",
+        "reserva",
+        "estado",
+        "fecha_emision",
+        "fecha_checkin",
+    )
+    list_filter = ("estado",)
+    search_fields = ("codigo_barra", "reserva__pasajero__username")
