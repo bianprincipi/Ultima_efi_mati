@@ -1,5 +1,3 @@
-Este es el README completo y finalizado, incluyendo a los integrantes del proyecto y las mejoras sugeridas para alinearlo con las mejores prácticas de documentación (sección de Autores y Licencia).
-
 DSW-2025 - Ingeniería de Software
 Proyecto: Sistema de Gestión de Aerolínea (Ultima_efi_mati)
 
@@ -125,3 +123,4 @@ Este proyecto está bajo la licencia MIT. Consulte el archivo LICENSE para más 
 
 ⚖️ Licencia
 Este proyecto está bajo la licencia MIT. Consulte el archivo LICENSE para más detalles.
+
