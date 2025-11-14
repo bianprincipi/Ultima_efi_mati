@@ -87,7 +87,9 @@ Ultima_efi_mati/
 ├─ manage.py
 └─ venv/ / env/        # Entornos virtuales (no versionar)
 
+
 ⚙️ Instalación y uso rápido
+
 1️⃣ Clonar el repositorio
 git clone https://github.com/bianprincipi/Ultima_efi_mati.git
 cd Ultima_efi_mati
@@ -117,6 +119,7 @@ Aplicación: http://127.0.0.1:8000/
 Admin: http://127.0.0.1:8000/admin/
 
 🔐 Credenciales del Sistema (Modo Demo)
+
 🛡️ Administrador
 
 Usuario: Aerolínea
@@ -145,3 +148,4 @@ Bianca Principi
 ⚖️ Licencia
 
 Proyecto bajo licencia MIT. Consulte el archivo LICENSE para más información.
+
