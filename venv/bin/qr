@@ -1,4 +1,4 @@
-#!/home/brisa/proyecto-aerolinea/venv/bin/python3
+#!/home/bian-principi/EFI_MATIAS_2025/venv/bin/python3
 # -*- coding: utf-8 -*-
 import re
 import sys

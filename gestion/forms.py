@@ -47,17 +47,17 @@ class VueloAdminForm(forms.ModelForm):
     Formulario completo para que el Administrador cree y edite vuelos.
     """
     # Usamos un queryset específico para mostrar solo usuarios que pueden ser tripulación (si aplica)
-    tripulacion = forms.ModelMultipleChoiceField(
-        queryset=Usuario.objects.filter(rol=Usuario.Rol.ADMIN), # Ejemplo: solo Admins como tripulación
-        required=False,
-        widget=forms.SelectMultiple(attrs={'class': 'form-control'})
-    )
+    # tripulacion = forms.ModelMultipleChoiceField(
+    #     queryset=Usuario.objects.filter(rol=Usuario.Rol.ADMIN), # Ejemplo: solo Admins como tripulación
+    #     required=False,
+    #     widget=forms.SelectMultiple(attrs={'class': 'form-control'})
+    # )
 
     class Meta:
         model = Vuelo
         fields = [
             'codigo_vuelo', 'origen', 'destino', 'fecha_salida', 
-            'fecha_llegada', 'precio_base', 'avion', 'estado', 'tripulacion'
+            'fecha_llegada', 'precio_base', 'avion', 'estado',
         ]
         widgets = {
             # Widgets para un mejor manejo de fecha y hora

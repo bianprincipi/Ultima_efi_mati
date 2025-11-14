@@ -150,14 +150,6 @@ class PasajeroViewSet(viewsets.ModelViewSet):
     queryset = Usuario.objects.all()
     serializer_class = PasajeroSerializer
 
-    def get_permissions(self):
-        if self.action == 'create':
-            return [permissions.AllowAny()]
-        if self.action in ['mis_reservas', 'me']:
-            return [permissions.IsAuthenticated()]
-        # para listar / ver otros pasajeros: solo admin
-        return [permissions.IsAdminUser()]
-
     # GET /api/pasajeros/me/
     @action(detail=False, methods=['get'])
     def me(self, request):

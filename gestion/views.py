@@ -43,7 +43,7 @@ def boleto_pdf_view(request, reserva_pk):
 
     # Encabezado
     p.setFont("Helvetica-Bold", 18)
-    p.drawString(100, height - 80, "Aurora Airlines - Boleto de Vuelo")
+    p.drawString(100, height - 80, "AeroEfi - Boleto de Vuelo")
 
     # Datos del pasajero
     p.setFont("Helvetica", 12)

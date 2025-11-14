@@ -4,29 +4,110 @@
     <meta charset="utf-8">
     <title>Boleto {{ boleto.codigo }}</title>
     <style>
-        body { font-family: DejaVu Sans, sans-serif; font-size: 12px; }
-        .card { border: 1px solid #333; padding: 15px; }
-        h2 { text-align: center; }
-        .fila { margin-bottom: 5px; }
-        .label { font-weight: bold; }
+        /* Definición de colores Pink Dream para el PDF */
+        :root {
+            --pink-dream-primary: #52057b; /* Morado Oscuro */
+            --pink-dream-accent: #ff007f; /* Rosa Fuerte */
+            --pink-dream-light: #fce4ec; /* Fondo muy claro */
+            --pink-dream-text-secondary: #892cdc; /* Morado Medio */
+        }
+        
+        body { 
+            font-family: DejaVu Sans, sans-serif; 
+            font-size: 12px;
+            /* Fondo ligeramente rosado */
+            background-color: var(--pink-dream-light); 
+            padding: 20px;
+        }
+
+        .card { 
+            /* Borde morado fuerte */
+            border: 3px solid var(--pink-dream-primary); 
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            background-color: #ffffff; /* Fondo blanco para mejor impresión */
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        h2 { 
+            text-align: center;
+            /* Título con color de acento */
+            color: var(--pink-dream-accent); 
+            font-size: 24px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--pink-dream-light);
+            padding-bottom: 10px;
+        }
+
+        .fila { 
+            display: flex; /* Usamos flex para alinear */
+            margin-bottom: 12px; 
+            padding-bottom: 5px;
+            border-bottom: 1px dashed #e0e0e0;
+        }
+        
+        /* Estilo para la etiqueta (label) */
+        .label { 
+            font-weight: bold;
+            color: var(--pink-dream-primary); /* Color morado oscuro */
+            min-width: 120px;
+            margin-right: 15px;
+        }
+        
+        /* Estilo para el valor */
+        .valor {
+            color: var(--pink-dream-text-secondary); /* Color morado medio */
+            font-weight: 500;
+        }
+
+        /* Estilo especial para código y asiento (resaltado) */
+        .codigo-boleto, .asiento-valor {
+            font-size: 14px;
+            font-weight: bold;
+            color: var(--pink-dream-accent); /* Color rosa fuerte */
+            background-color: #ffe0f0; /* Fondo muy claro para destacar */
+            padding: 3px 8px;
+            border-radius: 5px;
+        }
     </style>
 </head>
 <body>
     <div class="card">
-        <h2>Aurora Airlines - Boleto</h2>
-        <div class="fila"><span class="label">Código de Boleto:</span> {{ boleto.codigo }}</div>
-        <div class="fila"><span class="label">Pasajero:</span> {{ pasajero.get_full_name|default:pasajero.username }}</div>
-        <div class="fila"><span class="label">Vuelo:</span> {{ vuelo.codigo_vuelo }} ({{ vuelo.origen }} → {{ vuelo.destino }})</div>
-        <div class="fila"><span class="label">Salida:</span> {{ vuelo.fecha_salida|date:"d/m/Y H:i" }}</div>
-        <div class="fila"><span class="label">Asiento:</span>
+        <h2>AeroEfi - Boleto Electrónico</h2>
+        <div class="fila">
+            <span class="label">Código de Boleto:</span> 
+            <span class="valor codigo-boleto">{{ boleto.codigo }}</span>
+        </div>
+        <div class="fila">
+            <span class="label">Pasajero:</span> 
+            <span class="valor">{{ pasajero.get_full_name|default:pasajero.username }}</span>
+        </div>
+        <div class="fila">
+            <span class="label">Vuelo:</span> 
+            <span class="valor">{{ vuelo.codigo_vuelo }} ({{ vuelo.origen }} → {{ vuelo.destino }})</span>
+        </div>
+        <div class="fila">
+            <span class="label">Salida:</span> 
+            <span class="valor">{{ vuelo.fecha_salida|date:"d/m/Y H:i" }}</span>
+        </div>
+        <div class="fila">
+            <span class="label">Asiento:</span>
             {% if reserva.asiento %}
-                {{ reserva.asiento.fila }}{{ reserva.asiento.columna }}
+                <span class="valor asiento-valor">{{ reserva.asiento.fila }}{{ reserva.asiento.columna }}</span>
             {% else %}
-                Sin asignar
+                <span class="valor">Sin asignar</span>
             {% endif %}
         </div>
-        <div class="fila"><span class="label">Estado Reserva:</span> {{ reserva.get_estado_display }}</div>
-        <div class="fila"><span class="label">Fecha Emisión:</span> {{ boleto.fecha_emision|date:"d/m/Y H:i" }}</div>
+        <div class="fila">
+            <span class="label">Estado Reserva:</span> 
+            <span class="valor">{{ reserva.get_estado_display }}</span>
+        </div>
+        <div class="fila">
+            <span class="label">Fecha Emisión:</span> 
+            <span class="valor">{{ boleto.fecha_emision|date:"d/m/Y H:i" }}</span>
+        </div>
     </div>
 </body>
 </html>

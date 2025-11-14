@@ -7,7 +7,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     
-    <title>{% block title %}Aurora Airlines{% endblock %}</title>
+    <title>{% block title %}AeroEfi{% endblock %}</title>
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet" />
@@ -15,515 +15,184 @@
     
     {% block extra_css %}
     <style>
-        /* Enhanced color system and typography */
+        /* Enhanced color system and typography (PINK DUSK THEME - Estilo Único) */
         :root {
-            --aurora-primary: #0f172a;
-            --aurora-secondary: #1e293b;
-            --aurora-accent: #3b82f6;
-            --aurora-accent-light: #60a5fa;
-            --aurora-success: #10b981;
-            --aurora-warning: #f59e0b;
-            --aurora-gradient-primary: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #3b82f6 100%);
-            --aurora-gradient-accent: linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%);
-            --aurora-gradient-success: linear-gradient(135deg, #10b981 0%, #34d399 100%);
-            --aurora-shadow-sm: 0 2px 8px rgba(15, 23, 42, 0.08);
-            --aurora-shadow-md: 0 8px 25px rgba(15, 23, 42, 0.12);
-            --aurora-shadow-lg: 0 20px 40px rgba(15, 23, 42, 0.15);
-            --aurora-border-radius: 16px;
-            --aurora-border-radius-lg: 24px;
+            /* Colores Base Morado/Naranja (Contraste) */
+            --pink-dusk-primary: #451b75; /* Morado Profundo para texto principal */
+            --pink-dusk-secondary: #7e57c2; /* Morado Medio para texto secundario */
+            --pink-dusk-accent: #ff9800; /* Naranja/Dorado (Nuevo acento) */
+            --pink-dusk-accent-light: #ffb74d; /* Naranja Claro */
+            --pink-dusk-success: #10b981;
+            --pink-dusk-warning: #f59e0b;
+            
+            /* Degradados Morado/Naranja/Rosado */
+            --pink-dusk-gradient-primary: linear-gradient(135deg, #451b75 0%, #7e57c2 50%, #ff9800 100%);
+            --pink-dusk-gradient-accent: linear-gradient(135deg, #ff9800 0%, #ffc885 100%); /* Naranja Claro a Dorado */
+            --pink-dusk-gradient-button: linear-gradient(135deg, #e91e63 0%, #ff007f 100%); /* Rosa Fuerte para botones de acción */
+            --pink-dusk-gradient-success: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+
+            /* Sombras y Bordes */
+            --pink-dusk-shadow-sm: 0 2px 8px rgba(69, 27, 117, 0.1);
+            --pink-dusk-shadow-md: 0 8px 25px rgba(69, 27, 117, 0.15);
+            --pink-dusk-shadow-lg: 0 20px 40px rgba(69, 27, 117, 0.2);
+            --pink-dusk-border-radius: 16px;
+            --pink-dusk-border-radius-lg: 24px;
         }
 
         /* Modern body styling with improved background */
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #cbd5e1 100%);
+            /* Fondo ligeramente más blanco/grisáceo */
+            background: linear-gradient(135deg, #f8f8f8 0%, #e8e8e8 50%, #d8d8d8 100%); 
             background-attachment: fixed;
             margin: 0;
             padding-bottom: 90px;
             line-height: 1.6;
-            color: var(--aurora-primary);
+            color: var(--pink-dusk-primary);
         }
 
         /* Enhanced header with better glassmorphism */
         .aurora-header {
-            background: rgba(255, 255, 255, 0.85);
+            background: rgba(255, 255, 255, 0.95); /* Más opaco */
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
-            border-bottom: 1px solid rgba(59, 130, 246, 0.1);
+            /* Borde morado más visible */
+            border-bottom: 2px solid rgba(69, 27, 117, 0.1); 
             position: sticky;
             top: 0;
             z-index: 1030;
             padding: 1.25rem 0;
-            box-shadow: var(--aurora-shadow-sm);
+            box-shadow: var(--pink-dusk-shadow-sm);
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         /* Refined logo with better typography */
         .aurora-logo {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            text-decoration: none;
-            color: inherit;
-            font-family: 'Poppins', sans-serif;
-            font-weight: 700;
-            font-size: 1.75rem;
-            background: var(--aurora-gradient-primary);
+            /* Degradado Morado/Naranja para el texto */
+            background: var(--pink-dusk-gradient-primary); 
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
-            transition: all 0.3s ease;
-        }
-
-        .aurora-logo:hover {
-            transform: translateY(-1px);
+            font-weight: 800; /* Más énfasis */
         }
 
         /* Enhanced logo icon with subtle animation */
         .aurora-logo-icon {
-            width: 48px;
-            height: 48px;
-            background: var(--aurora-gradient-accent);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 22px;
-            box-shadow: var(--aurora-shadow-md);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .aurora-logo-icon:hover {
-            transform: rotate(15deg) scale(1.05);
-            box-shadow: var(--aurora-shadow-lg);
+            /* Degradado de acento Naranja/Dorado */
+            background: var(--pink-dusk-gradient-accent); 
+            box-shadow: var(--pink-dusk-shadow-md);
         }
 
         /* Improved navbar with better hover effects */
         .navbar-nav .nav-link {
-            position: relative;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            font-weight: 500;
-            font-size: 0.95rem;
-            padding: 0.75rem 1rem !important;
-            border-radius: 12px;
-            color: var(--aurora-secondary) !important;
+            color: var(--pink-dusk-secondary) !important;
         }
 
         .navbar-nav .nav-link:hover {
-            color: var(--aurora-accent) !important;
-            background: rgba(59, 130, 246, 0.08);
-            transform: translateY(-2px);
+            color: var(--pink-dusk-accent) !important;
+            /* Fondo suave al pasar el ratón (Naranja suave) */
+            background: rgba(255, 152, 0, 0.08); 
         }
 
         .navbar-nav .nav-link::after {
-            content: '';
-            position: absolute;
-            width: 0;
-            height: 3px;
-            bottom: 0;
-            left: 50%;
-            background: var(--aurora-gradient-accent);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            transform: translateX(-50%);
-            border-radius: 2px;
-        }
-
-        .navbar-nav .nav-link:hover::after {
-            width: 80%;
+            /* Degradado de acento Naranja/Dorado */
+            background: var(--pink-dusk-gradient-accent); 
         }
 
         /* Enhanced user menu with modern styling */
         .user-menu {
-            background: rgba(255, 255, 255, 0.95);
-            border: 1px solid rgba(59, 130, 246, 0.15);
-            border-radius: var(--aurora-border-radius);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            box-shadow: var(--aurora-shadow-lg);
-            padding: 0.5rem;
-            margin-top: 0.5rem;
-        }
-
-        .user-menu .dropdown-item {
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            border-radius: 10px;
-            margin: 2px 0;
-            padding: 0.75rem 1rem;
-            font-weight: 500;
-            color: var(--aurora-secondary);
+            /* Borde naranja suave */
+            border: 1px solid rgba(255, 152, 0, 0.15); 
+            box-shadow: var(--pink-dusk-shadow-lg);
         }
 
         .user-menu .dropdown-item:hover {
-            background: var(--aurora-gradient-accent);
-            color: white;
-            transform: translateX(4px);
+            /* Degradado de acento Naranja/Dorado */
+            background: var(--pink-dusk-gradient-accent); 
+            color: var(--pink-dusk-primary); /* Texto oscuro para el fondo claro */
         }
 
         /* Improved user avatar with better styling */
         .user-avatar {
-            width: 40px;
-            height: 40px;
-            background: var(--aurora-gradient-accent);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 16px;
-            font-weight: 600;
-            box-shadow: var(--aurora-shadow-sm);
-            transition: all 0.3s ease;
+            /* Degradado de acento Naranja/Dorado */
+            background: var(--pink-dusk-gradient-accent); 
         }
 
-        .user-avatar:hover {
-            transform: scale(1.05);
-            box-shadow: var(--aurora-shadow-md);
-        }
-
-        /* Enhanced auth buttons with better styling */
+        /* Enhanced auth buttons (rosa/morado fuerte) */
         .btn-auth {
-            background: var(--aurora-gradient-accent);
-            color: white;
-            border: none;
-            border-radius: 50px;
-            padding: 0.75rem 1.75rem;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-size: 0.9rem;
-            font-weight: 500;
-            text-decoration: none;
-            box-shadow: var(--aurora-shadow-sm);
+            /* Degradado Rosa Fuerte */
+            background: var(--pink-dusk-gradient-button); 
+            box-shadow: 0 4px 15px rgba(233, 30, 99, 0.5); /* Sombra rosada */
         }
 
         .btn-auth:hover {
-            background: var(--aurora-gradient-primary);
-            transform: translateY(-3px);
-            box-shadow: var(--aurora-shadow-lg);
-            color: white;
+            /* Degradado primario (Morado) */
+            background: linear-gradient(135deg, #451b75 0%, #7e57c2 100%); 
         }
 
         .btn-auth-outline {
-            background: transparent;
-            color: var(--aurora-accent);
-            border: 2px solid var(--aurora-accent);
-            border-radius: 50px;
-            padding: 0.65rem 1.75rem;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-size: 0.9rem;
-            font-weight: 500;
-            text-decoration: none;
+            color: var(--pink-dusk-accent);
+            /* Borde Naranja fuerte */
+            border: 2px solid var(--pink-dusk-accent); 
         }
 
         .btn-auth-outline:hover {
-            background: var(--aurora-accent);
-            color: white;
-            transform: translateY(-3px);
-            box-shadow: var(--aurora-shadow-md);
+            background: var(--pink-dusk-accent);
         }
 
-        /* Enhanced carousel with better image treatment */
-        .carousel-item img {
-            height: 500px;
-            object-fit: cover;
-            width: 100%;
-            filter: brightness(0.75) contrast(1.1);
-            transition: all 0.5s ease;
-        }
-
-        .carousel-item.active img {
-            filter: brightness(0.8) contrast(1.2);
-        }
-
-        /* Improved carousel captions with better glassmorphism */
+        /* Improved carousel captions */
         .carousel-caption {
-            background: rgba(15, 23, 42, 0.85);
-            border-radius: var(--aurora-border-radius-lg);
-            padding: 2.5rem;
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            max-width: 600px;
-            margin: 0 auto;
-            bottom: 3rem;
+            /* Fondo Morado Oscuro */
+            background: rgba(69, 27, 117, 0.85); 
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
-        .carousel-caption h5 {
-            font-family: 'Poppins', sans-serif;
-            font-size: 2.5rem;
-            font-weight: 700;
-            margin-bottom: 1.25rem;
-            color: white;
-            text-shadow: 2px 2px 8px rgba(0,0,0,0.5);
-            line-height: 1.2;
-        }
-
-        .carousel-caption p {
-            font-size: 1.2rem;
-            opacity: 0.95;
-            color: rgba(255, 255, 255, 0.9);
-            margin-bottom: 2rem;
-            line-height: 1.5;
-        }
-
-        /* Enhanced custom buttons with better gradients */
+        /* Enhanced custom buttons (general) */
         .btn-aurora-primary {
-            background: var(--aurora-gradient-accent);
-            color: white;
-            border: none;
-            border-radius: 50px;
-            padding: 0.875rem 2.5rem;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            font-weight: 600;
-            font-size: 1rem;
-            box-shadow: var(--aurora-shadow-md);
+            /* Degradado Rosa Fuerte */
+            background: var(--pink-dusk-gradient-button); 
+            box-shadow: 0 4px 15px rgba(233, 30, 99, 0.5); 
         }
 
         .btn-aurora-primary:hover {
-            background: var(--aurora-gradient-primary);
-            transform: translateY(-3px);
-            box-shadow: var(--aurora-shadow-lg);
-            color: white;
-        }
-
-        .btn-custom {
-            background: var(--aurora-gradient-success);
-            color: white;
-            border: none;
-            border-radius: 50px;
-            padding: 0.875rem 2.5rem;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            font-weight: 600;
-            font-size: 1rem;
-            box-shadow: var(--aurora-shadow-md);
-        }
-
-        .btn-custom:hover {
-            background: linear-gradient(135deg, #059669 0%, #10b981 100%);
-            transform: translateY(-3px);
-            box-shadow: var(--aurora-shadow-lg);
-            color: white;
+            /* Degradado primario (Morado) */
+            background: linear-gradient(135deg, #451b75 0%, #7e57c2 100%); 
         }
 
         /* Enhanced section and card styling */
-        .aurora-section {
-            padding: 5rem 0;
-        }
-
         .aurora-card {
-            background: rgba(255,255,255,0.95);
-            border-radius: var(--aurora-border-radius-lg);
-            padding: 2.5rem;
-            box-shadow: var(--aurora-shadow-md);
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            border: 1px solid rgba(59, 130, 246, 0.08);
-            text-align: center;
-            height: 100%;
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
+            border-radius: var(--pink-dusk-border-radius-lg);
+            box-shadow: var(--pink-dusk-shadow-md);
+            /* Borde morado más visible */
+            border: 2px solid rgba(69, 27, 117, 0.15); 
         }
 
         .aurora-card:hover {
-            transform: translateY(-12px) scale(1.02);
-            box-shadow: var(--aurora-shadow-lg);
-            border-color: rgba(59, 130, 246, 0.2);
+            box-shadow: var(--pink-dusk-shadow-lg);
+            border-color: rgba(69, 27, 117, 0.3);
         }
 
         .aurora-icon {
-            width: 72px;
-            height: 72px;
-            background: var(--aurora-gradient-accent);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 28px;
-            margin: 0 auto 1.5rem;
-            box-shadow: var(--aurora-shadow-md);
-            transition: all 0.3s ease;
-        }
-
-        .aurora-card:hover .aurora-icon {
-            transform: scale(1.1) rotate(5deg);
-            box-shadow: var(--aurora-shadow-lg);
+            /* Degradado de acento Naranja/Dorado */
+            background: var(--pink-dusk-gradient-accent); 
+            box-shadow: var(--pink-dusk-shadow-md);
         }
 
         /* Enhanced footer with better styling */
         .footer-aurora {
-            background: var(--aurora-gradient-primary);
-            color: white;
-            padding: 20px 25px;
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            font-size: 15px;
-            position: fixed;
-            bottom: 0;
-            width: 100%;
-            z-index: 1020;
-            box-shadow: 0 -8px 32px rgba(15, 23, 42, 0.3);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .footer-aurora p {
-            margin: 0;
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            font-weight: 500;
-            transition: all 0.3s ease;
+            /* Degradado primario (Morado/Naranja) */
+            background: var(--pink-dusk-gradient-primary); 
+            box-shadow: 0 -8px 32px rgba(69, 27, 117, 0.4);
         }
 
         .footer-aurora p:hover {
-            transform: translateY(-2px);
-            color: var(--aurora-accent-light);
-        }
-
-        .footer-aurora i {
-            font-size: 18px;
-            opacity: 0.9;
+            color: var(--pink-dusk-accent-light);
         }
 
         /* Enhanced modal styling */
-        .modal-content {
-            border-radius: var(--aurora-border-radius-lg) !important;
-            border: none !important;
-            box-shadow: var(--aurora-shadow-lg) !important;
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-        }
-
         .modal-header {
-            border: none !important;
-            background: var(--aurora-gradient-primary) !important;
-            color: white !important;
-            border-radius: var(--aurora-border-radius-lg) var(--aurora-border-radius-lg) 0 0 !important;
-            padding: 1.5rem 2rem !important;
-        }
-
-        .modal-body {
-            padding: 2rem !important;
-        }
-
-        .modal-footer {
-            border: none !important;
-            justify-content: center !important;
-            gap: 1rem !important;
-            padding: 1.5rem 2rem 2rem !important;
-        }
-
-        /* Enhanced carousel controls */
-        .carousel-control-prev,
-        .carousel-control-next {
-            width: 60px;
-            height: 60px;
-            background: rgba(15, 23, 42, 0.8);
-            border-radius: 50%;
-            top: 50%;
-            transform: translateY(-50%);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            transition: all 0.3s ease;
-        }
-
-        .carousel-control-prev {
-            left: 2rem;
-        }
-
-        .carousel-control-next {
-            right: 2rem;
-        }
-
-        .carousel-control-prev:hover,
-        .carousel-control-next:hover {
-            background: rgba(59, 130, 246, 0.9);
-            transform: translateY(-50%) scale(1.1);
-        }
-
-        /* Enhanced carousel indicators */
-        .carousel-indicators [data-bs-target] {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.5);
-            border: 2px solid white;
-            transition: all 0.3s ease;
-        }
-
-        .carousel-indicators [data-bs-target].active {
-            background: white;
-            transform: scale(1.2);
-        }
-
-        /* Improved responsive design */
-        @media (max-width: 768px) {
-            .carousel-caption {
-                padding: 1.5rem;
-                bottom: 1rem;
-            }
-            .carousel-caption h5 {
-                font-size: 1.75rem;
-                margin-bottom: 1rem;
-            }
-            .carousel-caption p {
-                font-size: 1rem;
-                margin-bottom: 1.5rem;
-            }
-            .footer-aurora {
-                flex-direction: column;
-                gap: 0.75rem;
-                padding: 15px;
-                font-size: 13px;
-            }
-            .aurora-logo {
-                font-size: 1.4rem;
-            }
-            .aurora-logo-icon {
-                width: 40px;
-                height: 40px;
-                font-size: 18px;
-            }
-            .auth-buttons {
-                flex-direction: column;
-                gap: 0.75rem;
-                width: 100%;
-            }
-            .btn-auth, .btn-auth-outline {
-                width: 100%;
-                justify-content: center;
-                padding: 0.75rem 1.5rem;
-            }
-            .carousel-item img {
-                height: 300px;
-            }
-            .carousel-control-prev,
-            .carousel-control-next {
-                width: 45px;
-                height: 45px;
-            }
-            .carousel-control-prev {
-                left: 1rem;
-            }
-            .carousel-control-next {
-                right: 1rem;
-            }
-        }
-
-        /* Additional smooth animations */
-        * {
-            scroll-behavior: smooth;
-        }
-
-        .container {
-            transition: all 0.3s ease;
+            /* Degradado primario (Morado/Naranja) */
+            background: var(--pink-dusk-gradient-primary) !important; 
         }
 
         /* Enhanced focus states for accessibility */
@@ -531,82 +200,39 @@
         .btn-auth-outline:focus,
         .btn-aurora-primary:focus,
         .btn-custom:focus {
-            outline: 3px solid rgba(59, 130, 246, 0.3);
-            outline-offset: 2px;
+            /* Foco Naranja */
+            outline: 3px solid rgba(255, 152, 0, 0.4); 
         }
 
         .nav-link:focus {
-            outline: 2px solid rgba(59, 130, 246, 0.3);
-            outline-offset: 2px;
-            border-radius: 8px;
+            /* Foco Naranja */
+            outline: 2px solid rgba(255, 152, 0, 0.4); 
         }
 
         /* Estilos específicos para el login (tarjeta principal) */
         .login-container {
-            min-height: 80vh;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 2rem 1rem;
+            /* Fondo degradado Morado Oscuro a Rosado */
+            background: linear-gradient(135deg, #7e57c2 0%, #e91e63 100%); 
         }
         
         .login-card {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: var(--aurora-border-radius-lg);
-            box-shadow: var(--aurora-shadow-lg);
-            padding: 3rem;
-            width: 100%;
-            max-width: 450px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: var(--pink-dusk-border-radius-lg);
+            box-shadow: var(--pink-dusk-shadow-lg);
+            border: 2px solid rgba(255, 255, 255, 0.3); /* Borde blanco más grueso */
         }
 
         .login-title {
-            color: var(--aurora-primary);
-            font-weight: 700;
-            margin-bottom: 0.5rem;
-            text-align: center;
+            color: var(--pink-dusk-primary);
         }
         
         .login-subtitle {
-            color: var(--aurora-secondary);
-            text-align: center;
-            margin-bottom: 2rem;
-            font-size: 1.1rem;
+            color: var(--pink-dusk-secondary);
         }
 
-        .field-with-icon .form-control {
-            padding-left: 3rem;
-            border: 2px solid #e1e8ed;
-            border-radius: 12px;
-            height: 3.2rem;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-            background: rgba(255, 255, 255, 0.9);
-        }
-        
         .field-with-icon .form-control:focus {
-            border-color: var(--aurora-accent);
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-            background: white;
-        }
-        
-        .field-icon {
-            position: absolute;
-            left: 1rem;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #95a5a6;
-            font-size: 1.2rem;
-            z-index: 2;
-        }
-        
-        .airline-logo-login::before {
-            content: "✈️";
-            font-size: 2.5rem;
-            display: block;
-            margin-bottom: 0.5rem;
+            /* Borde de foco Naranja */
+            border-color: var(--pink-dusk-accent); 
+            box-shadow: 0 0 0 3px rgba(255, 152, 0, 0.15);
         }
 
     </style>
@@ -620,7 +246,7 @@
                <a class="aurora-logo" href="{% url 'vuelos_disponibles' %}
 ">
                     <div class="aurora-logo-icon"><i class="bi bi-airplane"></i></div>
-                    Aurora Airlines
+                    AeroEfi
                 </a>
 
                 <button class="navbar-toggler d-lg-none" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -705,7 +331,7 @@
         </div>
         <div class="carousel-inner">
             <div class="carousel-item active">
-                <img src="{% static '1.png' %}" class="d-block w-100" alt="Vuelos Disponibles" />
+                <img src="{% static 'avionaero.jpg' %}" class="d-block w-100" alt="Vuelos Disponibles" />
                 <div class="carousel-caption">
                     <h5>Descubre el Mundo</h5>
                     <p>Conectamos más de 150 destinos con el mejor servicio y precios competitivos</p>
@@ -715,7 +341,7 @@
             </div>
             {% if not user.is_staff %}
             <div class="carousel-item">
-                <img src="{% static 'avion.png' %}" class="d-block w-100" alt="Reservar" />
+                <img src="{% static 'avionaero.jpg' %}" class="d-block w-100" alt="Reservar" />
                 <div class="carousel-caption">
                     <h5>Reserva Fácil y Rápida</h5>
                     <p>Sistema de reservas intuitivo con confirmación inmediata y mejores tarifas</p>
@@ -748,8 +374,8 @@
     <footer class="footer-aurora">
         <div class="container d-flex flex-wrap justify-content-between align-items-center">
             <p><i class="bi bi-telephone"></i> +54 9 11 1234-5678</p>
-            <p><i class="bi bi-envelope"></i> info@auroraairlines.com</p>
-            <p><i class="bi bi-geo-alt"></i> Buenos Aires, Argentina</p>
+            <p><i class="bi bi-envelope"></i> info@AeroEfi.com</p>
+            <p><i class="bi bi-geo-alt"></i> Cordoba, Argentina</p>
         </div>
     </footer>
 
