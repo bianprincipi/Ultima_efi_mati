@@ -91,26 +91,34 @@ Ultima_efi_mati/
 ⚙️ Instalación y uso rápido
 
 1️⃣ Clonar el repositorio
+
 git clone https://github.com/bianprincipi/Ultima_efi_mati.git
 cd Ultima_efi_mati
 
 2️⃣ Crear y activar entorno virtual
+
 python -m venv venv
+
 # Linux/Mac
 source venv/bin/activate
+
 # Windows
 # .\venv\Scripts\activate
 
-3️⃣ Instalar dependencias
+3️⃣ Instalar dependencias 
+
 pip install -r requirements.txt
 
 4️⃣ Aplicar migraciones
+
 python manage.py migrate
 
 5️⃣ Crear superusuario
+
 python manage.py createsuperuser
 
 6️⃣ Ejecutar el servidor
+
 python manage.py runserver
 
 
@@ -148,4 +156,5 @@ Bianca Principi
 ⚖️ Licencia
 
 Proyecto bajo licencia MIT. Consulte el archivo LICENSE para más información.
+
 
